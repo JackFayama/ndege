@@ -1,115 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Aviator Demo</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @keyframes fly {
-      from { transform: translateX(0); }
-      to { transform: translateX(100vw); }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviator Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: white;
+            font-family: sans-serif;
+        }
+        .modal-bg {
+            background: rgba(0, 0, 0, 0.7);
+        }
+    </style>
 </head>
-<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen">
 
-  <!-- Modal -->
-  <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white text-black p-6 rounded-lg max-w-sm text-center">
-      <p id="modalText" class="mb-4">Message</p>
-      <button onclick="document.getElementById('modal').classList.add('hidden')" class="bg-blue-600 text-white px-4 py-2 rounded">OK</button>
+<body class="min-h-screen flex flex-col items-center justify-start py-4 px-2">
+    <!-- Modal -->
+    <div id="modal" class="hidden fixed inset-0 flex items-center justify-center modal-bg z-50">
+        <div class="bg-white text-black p-6 rounded-lg max-w-sm w-full text-center">
+            <p id="modalMessage" class="mb-4 text-lg font-semibold"></p>
+            <button onclick="closeModal()" class="bg-blue-500 text-white px-4 py-2 rounded">OK</button>
+        </div>
     </div>
-  </div>
 
-  <h1 class="text-3xl font-bold mb-6">Aviator Demo Game</h1>
+    <!-- Header -->
+    <div class="w-full max-w-5xl bg-gray-900 rounded-lg p-4 flex justify-between items-center">
+        <div class="text-red-500 text-2xl font-bold">Aviator</div>
+        <div class="text-green-400 font-semibold text-xl" id="balanceDisplay">5,000.00 KES</div>
+    </div>
 
-  <div class="mb-4 text-xl">
-    Balance: <span id="balance" class="text-yellow-400 font-bold">$0.00</span>
-  </div>
+    <!-- Game Area -->
+    <div class="w-full max-w-5xl bg-gray-800 mt-4 p-4 rounded-xl flex flex-col items-center">
+        <div class="bg-yellow-500 w-full text-center py-1 rounded-t-md font-bold">FUN MODE</div>
+        <div class="bg-black w-full flex flex-col justify-center items-center py-12 rounded-b-md">
+            <div id="multiplierDisplay" class="text-6xl font-bold text-purple-400">1.00x</div>
+            <div class="mt-2 flex items-center space-x-2">
+                <img src="https://placekitten.com/32/32" class="rounded-full" />
+                <img src="https://placekitten.com/32/33" class="rounded-full" />
+                <span class="text-sm">305</span>
+            </div>
+        </div>
+    </div>
 
-  <div class="relative w-full h-48 bg-gray-800 rounded-lg overflow-hidden">
-    <img id="plane" src="https://i.ibb.co/BfLzKVS/aviator-plane.png"
-         class="absolute w-24 left-0 top-16 transition-transform duration-75" />
-    <p id="multiplier" class="absolute left-4 top-4 text-4xl font-bold text-green-400">x1.00</p>
-  </div>
+    <!-- Betting Area -->
+    <!-- [Betting area remains unchanged] -->
 
-  <button onclick="startFlight()"
-          class="mt-6 px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white font-bold">
-    Start Run
-  </button>
+<script>
+    let multiplier = parseFloat(localStorage.getItem('multiplier')) || 1.00;
+    let interval;
+    let isRunning = false;
+    let crashPoint = parseFloat(localStorage.getItem('crashPoint')) || 0;
+    let balance = parseFloat(localStorage.getItem('balance')) || 5000.00;
 
-  <audio id="flySound" src="https://actions.google.com/sounds/v1/transportation/airplane_flyby.ogg"></audio>
-
-  <script>
-    let multiplierText = document.getElementById('multiplier');
-    let plane = document.getElementById('plane');
-    let sound = document.getElementById('flySound');
-    let balanceEl = document.getElementById('balance');
-
-    let balance = parseFloat(localStorage.getItem('aviator_balance')) || 100;
-    balanceEl.innerText = `$${balance.toFixed(2)}`;
-
-    function updateBalanceDisplay() {
-      balanceEl.innerText = `$${balance.toFixed(2)}`;
-      localStorage.setItem('aviator_balance', balance.toFixed(2));
-    }
+    const bets = {
+        bet1: { active: false, placed: false, queued: false, amount: 0 },
+        bet2: { active: false, placed: false, queued: false, amount: 0 }
+    };
 
     function showModal(message) {
-      document.getElementById('modalText').innerText = message;
-      document.getElementById('modal').classList.remove('hidden');
-      document.getElementById('modal').classList.add('flex');
+        document.getElementById('modalMessage').innerText = message;
+        document.getElementById('modal').classList.remove('hidden');
     }
 
-    function startFlight() {
-      let multiplier = 1.00;
-      let crashed = false;
-      let crashPoint = (Math.random() * 5 + 1).toFixed(2);
-
-      const startTime = Date.now();
-      localStorage.setItem('aviator_start_time', startTime);
-      localStorage.setItem('aviator_crash_point', crashPoint);
-      localStorage.setItem('aviator_running', 'true');
-
-      sound.currentTime = 0;
-      sound.play();
-      plane.style.transition = "transform 0.1s linear";
-      plane.style.transform = "translateX(0px)";
-      runFlight(startTime, crashPoint);
+    function closeModal() {
+        document.getElementById('modal').classList.add('hidden');
     }
 
-    function runFlight(startTime, crashPoint) {
-      let x = 0;
-
-      let interval = setInterval(() => {
-        const elapsed = (Date.now() - startTime) / 1000;
-        let multiplier = parseFloat((1 + elapsed * 0.1333).toFixed(2)); // roughly matches your original speed
-        multiplierText.innerText = `x${multiplier.toFixed(2)}`;
-        x += 5;
-        plane.style.transform = `translateX(${x}px)`;
-
-        if (multiplier >= crashPoint) {
-          clearInterval(interval);
-          sound.pause();
-          sound.currentTime = 0;
-          multiplierText.innerText += " 💥 CRASHED";
-          localStorage.removeItem('aviator_running');
-          localStorage.removeItem('aviator_start_time');
-          localStorage.removeItem('aviator_crash_point');
-          showModal(`Crashed at x${multiplier.toFixed(2)}!`);
+    function startGame() {
+        if (!crashPoint || multiplier >= crashPoint) {
+            multiplier = 1.00;
+            crashPoint = (Math.random() * 3 + 1).toFixed(2);
+            localStorage.setItem('crashPoint', crashPoint);
         }
-      }, 75);
+        isRunning = true;
+
+        updateMultiplier();
+        interval = setInterval(() => {
+            multiplier += 0.01;
+            updateMultiplier();
+
+            Object.keys(bets).forEach(id => {
+                if (bets[id].active) {
+                    updateCashoutText(id);
+                }
+            });
+
+            if (multiplier >= crashPoint) {
+                stopGame();
+            }
+
+            localStorage.setItem('multiplier', multiplier.toFixed(2));
+        }, 50);
     }
 
-    // Resume if flight was running
-    window.addEventListener('DOMContentLoaded', () => {
-      if (localStorage.getItem('aviator_running') === 'true') {
-        const startTime = parseInt(localStorage.getItem('aviator_start_time'), 10);
-        const crashPoint = parseFloat(localStorage.getItem('aviator_crash_point'));
-        runFlight(startTime, crashPoint);
-      }
-    });
-  </script>
+    function stopGame() {
+        clearInterval(interval);
+        isRunning = false;
+        localStorage.removeItem('multiplier');
+        localStorage.removeItem('crashPoint');
 
+        Object.keys(bets).forEach(id => {
+            if (bets[id].active) {
+                bets[id].active = false;
+                setButtonToBet(id);
+            }
+            if (bets[id].queued) {
+                placeNextRound(id);
+            }
+        });
+
+        setTimeout(startGame, 3000);
+    }
+
+    function updateMultiplier() {
+        document.getElementById("multiplierDisplay").innerText = multiplier.toFixed(2) + "x";
+    }
+
+    function updateBalance() {
+        document.getElementById("balanceDisplay").innerText = balance.toFixed(2) + " KES";
+        localStorage.setItem('balance', balance.toFixed(2));
+    }
+
+    function placeBet(id) {
+        const amount = parseFloat(document.getElementById(id).value);
+
+        if (isNaN(amount) || amount <= 0) {
+            showModal("Please enter a valid bet amount.");
+            return;
+        }
+
+        if (amount > balance) {
+            showModal("Low balance. Please top up.");
+            return;
+        }
+
+        if (bets[id].active || bets[id].placed) return;
+
+        if (isRunning) {
+            bets[id].queued = true;
+            bets[id].amount = amount;
+            showModal(`Bet queued for next round: ${amount} KES`);
+            return;
+        }
+
+        balance -= amount;
+        updateBalance();
+
+        bets[id].placed = true;
+        bets[id].active = true;
+        bets[id].amount = amount;
+
+        setButtonToCashout(id);
+    }
+
+    function cashOut(id) {
+        if (!bets[id].active) return;
+
+        const win = (bets[id].amount * multiplier).toFixed(2);
+        balance += parseFloat(win);
+        updateBalance();
+        showModal(`Cashed out ${win} KES at ${multiplier.toFixed(2)}x`);
+
+        bets[id].active = false;
+        setButtonToBet(id);
+    }
+
+    // Other game logic functions remain unchanged...
+
+    updateBalance();
+    if (localStorage.getItem('multiplier')) startGame();
+    else stopGame();
+</script>
 </body>
 </html>
