@@ -108,105 +108,126 @@
             <button onclick="closeModal()" class="mt-4 px-4 py-2 bg-green-500 rounded">Close</button>
         </div>
     </div>
+<script>
+    let multiplier = 1.00;
+    let interval;
+    let crashPoint = 0;
+    const activeBets = {
+        bet1: { placed: false, amount: 0, cashedOut: false },
+        bet2: { placed: false, amount: 0, cashedOut: false }
+    };
 
-    <script>
-        let multiplier = 1.00;
-        let interval;
-        let currentBalance = 5000;
-        let isRoundRunning = false;
-        const activeBets = {};
+    function startGame() {
+        multiplier = 1.00;
+        crashPoint = generateCrashMultiplier();
+        resetBets();
+        updateMultiplier();
 
-        function updateMultiplier() {
-            document.getElementById("multiplierDisplay").innerText = multiplier.toFixed(2) + "x";
-        }
-
-        function startGame() {
-            multiplier = 1.00;
-            isRoundRunning = true;
+        interval = setInterval(() => {
+            multiplier += 0.01;
             updateMultiplier();
-            interval = setInterval(() => {
-                multiplier += 0.01;
-                updateMultiplier();
-                if (Math.random() < 0.005 || multiplier > 50) {
-                    clearInterval(interval);
-                    isRoundRunning = false;
-                    resolveBets();
-                    setTimeout(startGame, 5000);
-                }
-            }, 50);
+
+            if (multiplier >= crashPoint) {
+                clearInterval(interval);
+                handleCrash();
+                setTimeout(startGame, 5000);
+            }
+        }, 50);
+    }
+
+    function generateCrashMultiplier() {
+        const r = Math.random();
+        if (r < 0.005) return 1.00;
+        if (r < 0.10) return +(Math.random() * 1.5 + 1).toFixed(2);
+        if (r < 0.30) return +(Math.random() * 2 + 2).toFixed(2);
+        if (r < 0.60) return +(Math.random() * 3 + 4).toFixed(2);
+        return +(Math.random() * 5 + 7).toFixed(2);
+    }
+
+    function updateMultiplier() {
+        document.getElementById("multiplierDisplay").innerText = multiplier.toFixed(2) + "x";
+    }
+
+    function resetBets() {
+        for (let id in activeBets) {
+            activeBets[id].placed = false;
+            activeBets[id].amount = 0;
+            activeBets[id].cashedOut = false;
+        }
+    }
+
+    function setBet(id, value) {
+        document.getElementById(id).value = value.toFixed(2);
+        document.getElementById(id + "Amount").innerText = value.toFixed(2);
+    }
+
+    function increaseBet(id) {
+        let input = document.getElementById(id);
+        let value = parseFloat(input.value) + 10;
+        setBet(id, value);
+    }
+
+    function decreaseBet(id) {
+        let input = document.getElementById(id);
+        let value = Math.max(0, parseFloat(input.value) - 10);
+        setBet(id, value);
+    }
+
+    function placeBet(id) {
+        const amount = parseFloat(document.getElementById(id).value);
+        if (isNaN(amount) || amount <= 0) {
+            alert("Enter a valid bet amount.");
+            return;
         }
 
-        function resolveBets() {
-            Object.keys(activeBets).forEach(id => {
-                const bet = activeBets[id];
-                const btn = document.getElementById(id + "Btn");
-                if (!bet.cashOut) {
-                    currentBalance -= bet.amount;
-                    showModal(`You lost ${bet.amount} KES.`);
-                }
-                btn.classList.remove("bg-blue-500");
-                btn.classList.add("bg-green-500");
-                btn.innerHTML = `Bet <span id="${id}Amount">${bet.amount.toFixed(2)}</span> KES`;
-            });
-            Object.keys(activeBets).forEach(id => delete activeBets[id]);
-            updateBalance();
+        if (activeBets[id].placed) {
+            alert("Bet already placed.");
+            return;
         }
 
-        function setBet(id, value) {
-            document.getElementById(id).value = value.toFixed(2);
-            document.getElementById(id + "Amount").innerText = value.toFixed(2);
+        activeBets[id] = {
+            placed: true,
+            amount: amount,
+            cashedOut: false
+        };
+
+        alert(`✅ Bet placed: ${amount.toFixed(2)} KES`);
+    }
+
+    function cashOut(id) {
+        const bet = activeBets[id];
+        if (!bet.placed) {
+            alert("❌ No active bet to cash out.");
+            return;
         }
 
-        function increaseBet(id) {
-            let value = parseFloat(document.getElementById(id).value) + 10;
-            setBet(id, value);
+        if (bet.cashedOut) {
+            alert("⚠️ You already cashed out this bet.");
+            return;
         }
 
-        function decreaseBet(id) {
-            let value = Math.max(0, parseFloat(document.getElementById(id).value) - 10);
-            setBet(id, value);
+        if (multiplier >= crashPoint) {
+            alert("❌ Too late! The plane has crashed.");
+            return;
         }
 
-        function updateBalance() {
-            document.getElementById("balance").innerText = currentBalance.toFixed(2) + " KES";
-        }
+        const payout = (bet.amount * multiplier).toFixed(2);
+        bet.cashedOut = true;
+        alert(`💰 Cashed out ${payout} KES at ${multiplier.toFixed(2)}x`);
+    }
 
-        function showModal(message) {
-            document.getElementById("modalMessage").innerText = message;
-            document.getElementById("modal").classList.remove("hidden");
-        }
-
-        function closeModal() {
-            document.getElementById("modal").classList.add("hidden");
-        }
-
-        function handleBet(id) {
-            const btn = document.getElementById(id + "Btn");
-            const amount = parseFloat(document.getElementById(id).value);
-
-            if (activeBets[id]) {
-                // Cash out
-                const win = multiplier * activeBets[id].amount;
-                currentBalance += win;
-                activeBets[id].cashOut = true;
-                btn.classList.remove("bg-blue-500");
-                btn.classList.add("bg-green-500");
-                btn.innerHTML = `Bet <span id="${id}Amount">${activeBets[id].amount.toFixed(2)}</span> KES`;
-                showModal(`You cashed out ${win.toFixed(2)} KES!`);
-                updateBalance();
-            } else if (!isRoundRunning) {
-                showModal("Wait for the next round to place a bet.");
-            } else {
-                // Place new bet
-                activeBets[id] = { amount, cashOut: false };
-                btn.classList.remove("bg-green-500");
-                btn.classList.add("bg-blue-500");
-                btn.innerText = "CASH OUT";
+    function handleCrash() {
+        for (let id in activeBets) {
+            const bet = activeBets[id];
+            if (bet.placed && !bet.cashedOut) {
+                alert(`❌ ${id.toUpperCase()} lost ${bet.amount.toFixed(2)} KES. Crashed at ${crashPoint.toFixed(2)}x`);
             }
         }
+    }
 
-        startGame();
-    </script>
+    startGame();
+</script>
+
 </body>
 
 </html>
