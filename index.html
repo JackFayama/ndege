@@ -12,25 +12,14 @@
             color: white;
             font-family: sans-serif;
         }
-        .modal-bg {
-            background: rgba(0, 0, 0, 0.7);
-        }
     </style>
 </head>
 
 <body class="min-h-screen flex flex-col items-center justify-start py-4 px-2">
-    <!-- Modal -->
-    <div id="modal" class="hidden fixed inset-0 flex items-center justify-center modal-bg z-50">
-        <div class="bg-white text-black p-6 rounded-lg max-w-sm w-full text-center">
-            <p id="modalMessage" class="mb-4 text-lg font-semibold"></p>
-            <button onclick="closeModal()" class="bg-blue-500 text-white px-4 py-2 rounded">OK</button>
-        </div>
-    </div>
-
     <!-- Header -->
     <div class="w-full max-w-5xl bg-gray-900 rounded-lg p-4 flex justify-between items-center">
         <div class="text-red-500 text-2xl font-bold">Aviator</div>
-        <div class="text-green-400 font-semibold text-xl" id="balanceDisplay">5,000.00 KES</div>
+        <div class="text-green-400 font-semibold text-xl">5,000.00 KES</div>
     </div>
 
     <!-- Game Area -->
@@ -47,35 +36,66 @@
     </div>
 
     <!-- Betting Area -->
-    <!-- [Betting area remains unchanged] -->
+    <div class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <!-- Bet 1 -->
+        <div class="bg-gray-900 rounded-xl p-4">
+            <div class="bg-gray-800 rounded-lg p-3">
+                <div class="flex justify-between mb-2">
+                    <button class="bg-gray-700 px-3 py-1 rounded">Bet</button>
+                    <button class="bg-gray-700 px-3 py-1 rounded">Auto</button>
+                </div>
+                <div class="flex items-center space-x-2 mb-2">
+                    <button onclick="decreaseBet('bet1')" class="bg-gray-700 px-3 py-1 rounded">-</button>
+                    <input id="bet1" type="number" class="w-full text-center bg-gray-800 text-white py-1 rounded" value="10.00">
+                    <button onclick="increaseBet('bet1')" class="bg-gray-700 px-3 py-1 rounded">+</button>
+                </div>
+                <div class="grid grid-cols-3 gap-2 mb-2">
+                    <button onclick="setBet('bet1', 100)" class="bg-gray-700 py-1 rounded">100</button>
+                    <button onclick="setBet('bet1', 200)" class="bg-gray-700 py-1 rounded">200</button>
+                    <button onclick="setBet('bet1', 500)" class="bg-gray-700 py-1 rounded">500</button>
+                    <button onclick="setBet('bet1', 10000)" class="bg-gray-700 py-1 rounded col-span-3">10,000</button>
+                </div>
+                <button onclick="placeBet('bet1')" class="w-full bg-green-500 py-2 rounded text-white font-bold">Bet <span id="bet1Amount">10.00</span> KES</button>
+            </div>
+        </div>
 
+        <!-- Bet 2 -->
+        <div class="bg-gray-900 rounded-xl p-4">
+            <div class="bg-gray-800 rounded-lg p-3">
+                <div class="flex justify-between mb-2">
+                    <button class="bg-gray-700 px-3 py-1 rounded">Bet</button>
+                    <button class="bg-gray-700 px-3 py-1 rounded">Auto</button>
+                </div>
+                <div class="flex items-center space-x-2 mb-2">
+                    <button onclick="decreaseBet('bet2')" class="bg-gray-700 px-3 py-1 rounded">-</button>
+                    <input id="bet2" type="number" class="w-full text-center bg-gray-800 text-white py-1 rounded" value="10.00">
+                    <button onclick="increaseBet('bet2')" class="bg-gray-700 px-3 py-1 rounded">+</button>
+                </div>
+                <div class="grid grid-cols-3 gap-2 mb-2">
+                    <button onclick="setBet('bet2', 100)" class="bg-gray-700 py-1 rounded">100</button>
+                    <button onclick="setBet('bet2', 200)" class="bg-gray-700 py-1 rounded">200</button>
+                    <button onclick="setBet('bet2', 500)" class="bg-gray-700 py-1 rounded">500</button>
+                    <button onclick="setBet('bet2', 10000)" class="bg-gray-700 py-1 rounded col-span-3">10,000</button>
+                </div>
+                <button onclick="placeBet('bet2')" class="w-full bg-green-500 py-2 rounded text-white font-bold">Bet <span id="bet2Amount">10.00</span> KES</button>
+            </div>
+        </div>
+    </div>
 <script>
-    let multiplier = parseFloat(localStorage.getItem('multiplier')) || 1.00;
+    let multiplier = 1.00;
     let interval;
     let isRunning = false;
-    let crashPoint = parseFloat(localStorage.getItem('crashPoint')) || 0;
-    let balance = parseFloat(localStorage.getItem('balance')) || 5000.00;
+    let crashPoint = 0;
+    let balance = 5000.00;
 
     const bets = {
         bet1: { active: false, placed: false, queued: false, amount: 0 },
         bet2: { active: false, placed: false, queued: false, amount: 0 }
     };
 
-    function showModal(message) {
-        document.getElementById('modalMessage').innerText = message;
-        document.getElementById('modal').classList.remove('hidden');
-    }
-
-    function closeModal() {
-        document.getElementById('modal').classList.add('hidden');
-    }
-
     function startGame() {
-        if (!crashPoint || multiplier >= crashPoint) {
-            multiplier = 1.00;
-            crashPoint = (Math.random() * 3 + 1).toFixed(2);
-            localStorage.setItem('crashPoint', crashPoint);
-        }
+        multiplier = 1.00;
+        crashPoint = (Math.random() * 3 + 1).toFixed(2); // Crash between 1.00–4.00
         isRunning = true;
 
         updateMultiplier();
@@ -83,6 +103,7 @@
             multiplier += 0.01;
             updateMultiplier();
 
+            // Update live winnings on active bets
             Object.keys(bets).forEach(id => {
                 if (bets[id].active) {
                     updateCashoutText(id);
@@ -92,19 +113,16 @@
             if (multiplier >= crashPoint) {
                 stopGame();
             }
-
-            localStorage.setItem('multiplier', multiplier.toFixed(2));
         }, 50);
     }
 
     function stopGame() {
         clearInterval(interval);
         isRunning = false;
-        localStorage.removeItem('multiplier');
-        localStorage.removeItem('crashPoint');
 
         Object.keys(bets).forEach(id => {
             if (bets[id].active) {
+                // Player loses
                 bets[id].active = false;
                 setButtonToBet(id);
             }
@@ -120,21 +138,33 @@
         document.getElementById("multiplierDisplay").innerText = multiplier.toFixed(2) + "x";
     }
 
-    function updateBalance() {
-        document.getElementById("balanceDisplay").innerText = balance.toFixed(2) + " KES";
-        localStorage.setItem('balance', balance.toFixed(2));
+    function setBet(id, value) {
+        document.getElementById(id).value = value.toFixed(2);
+        document.getElementById(id + "Amount").innerText = value.toFixed(2);
+    }
+
+    function increaseBet(id) {
+        let input = document.getElementById(id);
+        let value = parseFloat(input.value) + 10;
+        setBet(id, value);
+    }
+
+    function decreaseBet(id) {
+        let input = document.getElementById(id);
+        let value = Math.max(0, parseFloat(input.value) - 10);
+        setBet(id, value);
     }
 
     function placeBet(id) {
         const amount = parseFloat(document.getElementById(id).value);
 
         if (isNaN(amount) || amount <= 0) {
-            showModal("Please enter a valid bet amount.");
+            alert("Please enter a valid bet amount.");
             return;
         }
 
         if (amount > balance) {
-            showModal("Low balance. Please top up.");
+            alert("Low balance. Please top up.");
             return;
         }
 
@@ -143,7 +173,7 @@
         if (isRunning) {
             bets[id].queued = true;
             bets[id].amount = amount;
-            showModal(`Bet queued for next round: ${amount} KES`);
+            alert(`Bet queued for next round: ${amount} KES`);
             return;
         }
 
@@ -157,23 +187,80 @@
         setButtonToCashout(id);
     }
 
+    function setButtonToCashout(id) {
+        const btn = document.querySelector(`#${id}`).parentElement.parentElement.querySelector("button.w-full");
+        btn.innerText = "Cashout";
+        btn.classList.remove("bg-green-500");
+        btn.classList.add("bg-yellow-400");
+        btn.onclick = () => cashOut(id);
+
+        // Add span to update KES winnings live
+        if (!btn.querySelector(".live-win")) {
+            const liveSpan = document.createElement("span");
+            liveSpan.className = "live-win ml-2 font-bold";
+            liveSpan.style.color = "black";
+            btn.appendChild(liveSpan);
+        }
+    }
+
+    function updateCashoutText(id) {
+        const btn = document.querySelector(`#${id}`).parentElement.parentElement.querySelector("button.w-full");
+        const liveSpan = btn.querySelector(".live-win");
+        if (liveSpan && bets[id].active) {
+            const win = (bets[id].amount * multiplier).toFixed(2);
+            liveSpan.textContent = `KES ${win}`;
+        }
+    }
+
+    function setButtonToBet(id) {
+        const amount = bets[id].amount;
+        const btn = document.querySelector(`#${id}`).parentElement.parentElement.querySelector("button.w-full");
+        btn.innerHTML = `Bet <span id="${id}Amount">${amount.toFixed(2)}</span> KES`;
+        btn.classList.remove("bg-yellow-400");
+        btn.classList.add("bg-green-500");
+        btn.onclick = () => placeBet(id);
+        bets[id].placed = false;
+        bets[id].active = false;
+        bets[id].amount = 0;
+    }
+
     function cashOut(id) {
         if (!bets[id].active) return;
 
         const win = (bets[id].amount * multiplier).toFixed(2);
         balance += parseFloat(win);
         updateBalance();
-        showModal(`Cashed out ${win} KES at ${multiplier.toFixed(2)}x`);
+        alert(`Cashed out ${win} KES at ${multiplier.toFixed(2)}x`);
 
         bets[id].active = false;
         setButtonToBet(id);
     }
 
-    // Other game logic functions remain unchanged...
+    function updateBalance() {
+        document.querySelector(".text-green-400").innerText = balance.toFixed(2) + " KES";
+    }
 
-    updateBalance();
-    if (localStorage.getItem('multiplier')) startGame();
-    else stopGame();
+    function placeNextRound(id) {
+        const amount = bets[id].amount;
+
+        if (amount > balance) {
+            alert("Low balance. Please top up.");
+            bets[id].queued = false;
+            return;
+        }
+
+        balance -= amount;
+        updateBalance();
+
+        bets[id].queued = false;
+        bets[id].placed = true;
+        bets[id].active = true;
+        setButtonToCashout(id);
+    }
+
+    startGame();
 </script>
+
 </body>
+
 </html>
