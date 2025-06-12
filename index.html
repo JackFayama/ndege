@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Aviator Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aviator Full Game</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @keyframes fly {
@@ -12,19 +12,29 @@
     }
   </style>
 </head>
-<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen">
-  <h1 class="text-3xl font-bold mb-6">Aviator Demo Game</h1>
+<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen p-4">
+  <h1 class="text-3xl font-bold mb-6">Aviator Full Game</h1>
 
-  <div class="relative w-full h-48 bg-gray-800 rounded-lg overflow-hidden">
+  <div class="mb-4 w-full max-w-md">
+    <input id="betAmount" type="number" placeholder="Enter Bet Amount"
+           class="w-full p-2 rounded text-black text-lg" min="1" value="10" />
+  </div>
+
+  <div class="relative w-full max-w-2xl h-48 bg-gray-800 rounded-lg overflow-hidden">
     <img id="plane" src="https://i.ibb.co/BfLzKVS/aviator-plane.png"
          class="absolute w-24 left-0 top-16 transition-transform duration-75" />
     <p id="multiplier" class="absolute left-4 top-4 text-4xl font-bold text-green-400">x1.00</p>
   </div>
 
-  <button onclick="startFlight()"
-          class="mt-6 px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white font-bold">
-    Start Run
-  </button>
+  <div class="flex gap-4 mt-6">
+    <button onclick="cashOut()"
+            id="cashOutBtn"
+            class="px-6 py-2 bg-yellow-500 hover:bg-yellow-600 rounded-lg text-white font-bold disabled:opacity-50">
+      Cash Out
+    </button>
+  </div>
+
+  <p id="profit" class="mt-4 text-xl font-semibold"></p>
 
   <audio id="flySound" src="https://actions.google.com/sounds/v1/transportation/airplane_flyby.ogg"></audio>
 
@@ -32,37 +42,65 @@
     let multiplierText = document.getElementById('multiplier');
     let plane = document.getElementById('plane');
     let sound = document.getElementById('flySound');
+    let cashOutBtn = document.getElementById('cashOutBtn');
+    let profitDisplay = document.getElementById('profit');
+    let betInput = document.getElementById('betAmount');
+
+    let gameInterval;
+    let multiplier = 1.00;
+    let x = 0;
+    let crashed = false;
+    let hasCashedOut = false;
 
     function startFlight() {
-      let multiplier = 1.00;
-      let crashed = false;
-      let crashPoint = (Math.random() * 5 + 1).toFixed(2); // crash between x1.00 and x6.00
+      multiplier = 1.00;
+      x = 0;
+      crashed = false;
+      hasCashedOut = false;
+      cashOutBtn.disabled = false;
+      profitDisplay.innerText = "";
+      multiplierText.innerText = `x${multiplier.toFixed(2)}`;
+      plane.style.transform = `translateX(0px)`;
 
+      let crashPoint = (Math.random() * 6 + 1).toFixed(2);
       sound.currentTime = 0;
       sound.play();
 
-      plane.style.transition = "transform 0.1s linear";
-      plane.style.transform = "translateX(0px)";
-
-      let x = 0;
-      let interval = setInterval(() => {
+      gameInterval = setInterval(() => {
         multiplier += 0.01;
         multiplier = parseFloat(multiplier.toFixed(2));
         multiplierText.innerText = `x${multiplier.toFixed(2)}`;
-
-        // move plane
         x += 5;
         plane.style.transform = `translateX(${x}px)`;
 
         if (multiplier >= crashPoint) {
-          clearInterval(interval);
+          clearInterval(gameInterval);
           sound.pause();
-          sound.currentTime = 0;
           multiplierText.innerText += " 💥 CRASHED";
+          cashOutBtn.disabled = true;
+          if (!hasCashedOut) {
+            profitDisplay.innerText = `You lost $${parseFloat(betInput.value).toFixed(2)}`;
+          }
+          setTimeout(startFlight, 5000);
         }
       }, 75);
     }
+
+    function cashOut() {
+      if (crashed || hasCashedOut) return;
+      hasCashedOut = true;
+      clearInterval(gameInterval);
+      sound.pause();
+      let bet = parseFloat(betInput.value);
+      let earnings = (bet * multiplier).toFixed(2);
+      profitDisplay.innerText = `You cashed out at x${multiplier.toFixed(2)}: $${earnings}`;
+      multiplierText.innerText += " ✅ CASHED OUT";
+      cashOutBtn.disabled = true;
+      setTimeout(startFlight, 5000);
+    }
+
+    // Auto start loop
+    startFlight();
   </script>
-  
 </body>
 </html>
