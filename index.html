@@ -89,8 +89,8 @@
     let balance = parseFloat(localStorage.getItem("balance")) || 5000.00;
 
     let bets = JSON.parse(localStorage.getItem("bets")) || {
-        bet1: { active: false, placed: false, queued: false, amount: 0 },
-        bet2: { active: false, placed: false, queued: false, amount: 0 }
+        bet1: { active: false, placed: false, queued: false, amount: 10 },
+        bet2: { active: false, placed: false, queued: false, amount: 10 }
     };
 
     function saveState() {
@@ -101,8 +101,8 @@
     }
 
     function getCurrentMultiplier() {
-        const elapsed = (Date.now() - gameStartTime) / 1000; // seconds
-        return 1 + elapsed * 0.2; // same as +0.01 every 50ms
+        const elapsed = (Date.now() - gameStartTime) / 1000;
+        return 1 + elapsed * 0.2;
     }
 
     function updateMultiplier() {
@@ -218,7 +218,7 @@
     }
 
     function setButtonToBet(id) {
-        const amount = bets[id].amount;
+        const amount = bets[id].amount || 10;
         const btn = document.querySelector(`#${id}`).parentElement.parentElement.querySelector("button.w-full");
         btn.innerHTML = `Bet <span id="${id}Amount">${amount.toFixed(2)}</span> KES`;
         btn.classList.remove("bg-yellow-400");
@@ -226,7 +226,7 @@
         btn.onclick = () => placeBet(id);
         bets[id].placed = false;
         bets[id].active = false;
-        bets[id].amount = 0;
+        bets[id].amount = 10;
         saveState();
     }
 
@@ -236,8 +236,7 @@
         const win = (bets[id].amount * getCurrentMultiplier()).toFixed(2);
         balance += parseFloat(win);
         updateBalance();
-        alert(`Cashed out ${win} KES at ${getCurrentMultiplier().toFixed(2)}x`);
-
+        showModal(`Cashed out ${win} KES at ${getCurrentMultiplier().toFixed(2)}x`);
         bets[id].active = false;
         setButtonToBet(id);
         saveState();
@@ -280,11 +279,9 @@
     if (isRunning) {
         interval = setInterval(() => {
             const multiplier = updateMultiplier();
-
             Object.keys(bets).forEach(id => {
                 if (bets[id].active) updateCashoutText(id);
             });
-
             if (multiplier >= crashPoint) stopGame();
         }, 50);
     } else {
@@ -292,15 +289,14 @@
     }
 
     function showModal(message, title = "Notification") {
-    document.getElementById("modalTitle").innerText = title;
-    document.getElementById("modalMessage").innerText = message;
-    document.getElementById("modalPopup").classList.remove("hidden");
-}
+        document.getElementById("modalTitle").innerText = title;
+        document.getElementById("modalMessage").innerText = message;
+        document.getElementById("modalPopup").classList.remove("hidden");
+    }
 
-function closeModal() {
-    document.getElementById("modalPopup").classList.add("hidden");
-}
-
+    function closeModal() {
+        document.getElementById("modalPopup").classList.add("hidden");
+    }
 </script>
 
 <!-- Modal Popup -->
