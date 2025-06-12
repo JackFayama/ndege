@@ -1,120 +1,138 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" x-data="aviator()" x-init="start()">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Aviator Game</title>
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
+<body class="bg-gray-900 text-white min-h-screen p-4">
+  <div class="max-w-2xl mx-auto space-y-6">
 
-<body class="bg-gray-900 text-white" x-data="aviatorGame()" x-init="startGame()">
-  <div class="w-full max-w-3xl mx-auto p-4">
-    <div class="bg-gray-800 rounded-2xl p-4 w-full">
-      <div class="flex justify-between items-center">
-        <h1 class="text-red-500 font-bold text-xl">Aviator</h1>
-        <div class="text-green-400 font-bold">KES <span x-text="balance.toFixed(2)"></span></div>
-      </div>
+    <!-- Header -->
+    <div class="flex justify-between items-center bg-gray-800 p-4 rounded-lg">
+      <h1 class="text-xl font-bold text-red-500">AVIATOR</h1>
+      <div class="text-green-400 text-lg font-bold">Balance: KES <span x-text="balance.toFixed(2)"></span></div>
     </div>
 
-    <div class="bg-black text-purple-400 text-center py-10 rounded-xl mt-4 text-5xl font-bold relative">
+    <!-- Multiplier Display -->
+    <div class="bg-black rounded-xl p-12 text-center text-5xl font-bold relative">
       <template x-if="!crashed">
-        <div x-text="multiplier.toFixed(2) + 'x'"></div>
+        <div class="text-purple-400" x-text="multiplier.toFixed(2) + 'x'"></div>
       </template>
       <template x-if="crashed">
-        <div class="text-red-600 font-bold">CRASHED</div>
+        <div class="text-red-600">CRASHED</div>
       </template>
-      <div x-show="crashed" class="absolute bottom-0 left-0 w-full py-2">
-        <div class="text-white text-sm text-center">Next round in <span x-text="countdown"></span>s...</div>
+
+      <!-- Live profit display -->
+      <div class="absolute bottom-4 right-4 bg-gray-700 px-3 py-1 rounded-full text-xs" x-show="liveProfit > 0">
+        Profit: <span x-text="liveProfit.toFixed(2)"></span> KES
       </div>
-      <div class="absolute bottom-4 right-4 bg-gray-700 rounded-full px-3 py-1 text-xs">
-        <span x-text="liveProfit.toFixed(2)"></span>
+
+      <!-- Countdown after crash -->
+      <div class="absolute bottom-2 left-0 right-0 text-white text-sm" x-show="crashed">
+        Next round in <span x-text="countdown"></span>s...
       </div>
     </div>
 
-    <div class="bg-gray-800 rounded-2xl p-4 mt-4 space-y-4">
-      <template x-for="(bet, index) in bets" :key="index">
-        <div class="bg-gray-900 rounded-xl p-4 flex items-center justify-between">
-          <div class="flex items-center space-x-2">
-            <button @click="decreaseBet(index)" class="px-2 bg-gray-600 rounded">-</button>
-            <input type="number" x-model.number="bet.amount" class="w-20 text-black text-center rounded px-2 py-1" />
-            <button @click="increaseBet(index)" class="px-2 bg-gray-600 rounded">+</button>
-          </div>
-          <button 
-            :class="{'bg-blue-500': bet.placed && !bet.cashedOut, 'bg-green-500': !bet.placed, 'bg-gray-500': bet.cashedOut}"
-            class="px-4 py-2 rounded text-white"
-            @click="handleBet(index)"
-            x-text="bet.placed && !bet.cashedOut ? 'Cash Out' : ('Bet ' + bet.amount.toFixed(2) + ' KES')">
-          </button>
+    <!-- Bet Controls -->
+    <template x-for="(bet, index) in bets" :key="index">
+      <div class="flex justify-between items-center bg-gray-800 p-4 rounded-xl">
+        <div class="flex items-center gap-2">
+          <input type="number" min="10" class="w-24 px-2 py-1 text-black rounded" x-model.number="bet.amount">
+          <span class="text-sm">KES</span>
         </div>
-      </template>
-    </div>
+        <div>
+          <template x-if="!bet.placed">
+            <button @click="placeBet(index)" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-sm">
+              Bet
+            </button>
+          </template>
+          <template x-if="bet.placed && !bet.cashedOut">
+            <button @click="cashOut(index)" class="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded text-sm">
+              Cash Out
+            </button>
+          </template>
+          <template x-if="bet.cashedOut">
+            <span class="text-green-400 font-semibold text-sm">Cashed</span>
+          </template>
+        </div>
+      </div>
+    </template>
 
-    <div x-show="showModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-      <div class="bg-white text-black rounded-lg shadow-lg p-6 w-80">
-        <h2 class="text-lg font-bold mb-4">Notice</h2>
+    <!-- Modal -->
+    <div x-show="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white text-black p-6 rounded shadow-lg w-80">
+        <h2 class="font-bold mb-2 text-lg">Notice</h2>
         <p x-text="modalMessage"></p>
-        <div class="mt-4 text-right">
-          <button @click="showModal = false" class="px-4 py-2 bg-blue-600 text-white rounded">OK</button>
+        <div class="text-right mt-4">
+          <button @click="showModal = false" class="bg-blue-600 text-white px-4 py-1 rounded">OK</button>
         </div>
       </div>
     </div>
+
   </div>
 
+  <!-- Logic -->
   <script>
-    function aviatorGame() {
+    function aviator() {
       return {
+        balance: 5000,
         multiplier: 1,
         crashed: false,
         running: false,
-        balance: 5000.00,
         countdown: 5,
-        interval: null,
         liveProfit: 0,
         showModal: false,
         modalMessage: '',
+        interval: null,
+
         bets: [
-          { amount: 10, placed: false, cashedOut: false, liveAmount: 0 },
-          { amount: 10, placed: false, cashedOut: false, liveAmount: 0 }
+          { amount: 10, placed: false, cashedOut: false, live: 0 },
+          { amount: 10, placed: false, cashedOut: false, live: 0 }
         ],
 
-        startGame() {
+        start() {
+          this.loop();
+          this.resetGame();
+        },
+
+        loop() {
           this.interval = setInterval(() => {
             if (this.running) {
               this.multiplier += 0.01;
               this.bets.forEach(bet => {
                 if (bet.placed && !bet.cashedOut) {
-                  bet.liveAmount = bet.amount * this.multiplier;
-                  this.liveProfit = bet.liveAmount;
+                  bet.live = bet.amount * this.multiplier;
+                  this.liveProfit = bet.live;
                 }
               });
+
               if (Math.random() < 0.005 * this.multiplier) {
                 this.crash();
               }
             }
           }, 50);
-          this.newRound();
         },
 
-        newRound() {
+        resetGame() {
           setTimeout(() => {
             this.multiplier = 1;
             this.crashed = false;
             this.running = true;
             this.liveProfit = 0;
             this.bets.forEach(bet => {
-              if (bet.placed && !bet.cashedOut) {
-                bet.placed = false;
-              }
+              bet.placed = false;
               bet.cashedOut = false;
-              bet.liveAmount = 0;
+              bet.live = 0;
             });
           }, 5000);
+
           this.countdown = 5;
-          const interval = setInterval(() => {
+          const countdownInterval = setInterval(() => {
             this.countdown--;
-            if (this.countdown <= 0) clearInterval(interval);
+            if (this.countdown <= 0) clearInterval(countdownInterval);
           }, 1000);
         },
 
@@ -123,46 +141,39 @@
           this.crashed = true;
           this.bets.forEach(bet => {
             if (bet.placed && !bet.cashedOut) {
+              // Lost money already deducted
               bet.placed = false;
-              bet.liveAmount = 0;
-              // Already deducted earlier, no refund
+              bet.live = 0;
             }
           });
-          this.newRound();
+          this.resetGame();
         },
 
-        handleBet(index) {
+        placeBet(index) {
           const bet = this.bets[index];
-
-          if (!bet.placed) {
-            if (bet.amount > this.balance) {
-              this.modalMessage = 'Insufficient funds. Please top up.';
-              this.showModal = true;
-              return;
-            }
-            bet.placed = true;
-            bet.cashedOut = false;
+          if (bet.amount > this.balance) {
+            this.modalMessage = "Insufficient balance to place this bet.";
+            this.showModal = true;
+            return;
+          }
+          if (this.running && !bet.placed && !bet.cashedOut) {
             this.balance -= bet.amount;
-          } else if (!bet.cashedOut) {
-            bet.cashedOut = true;
-            bet.placed = false;
-            this.balance += bet.liveAmount;
-            bet.liveAmount = 0;
+            bet.placed = true;
+            bet.live = 0;
           }
         },
 
-        increaseBet(index) {
-          this.bets[index].amount += 10;
-        },
-
-        decreaseBet(index) {
-          if (this.bets[index].amount > 10) {
-            this.bets[index].amount -= 10;
+        cashOut(index) {
+          const bet = this.bets[index];
+          if (bet.placed && !bet.cashedOut) {
+            this.balance += bet.live;
+            bet.cashedOut = true;
+            bet.placed = false;
+            bet.live = 0;
           }
         }
       }
     }
   </script>
 </body>
-
 </html>
