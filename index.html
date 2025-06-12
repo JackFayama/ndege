@@ -103,6 +103,13 @@
             multiplier += 0.01;
             updateMultiplier();
 
+            // Update live winnings on active bets
+            Object.keys(bets).forEach(id => {
+                if (bets[id].active) {
+                    updateCashoutText(id);
+                }
+            });
+
             if (multiplier >= crashPoint) {
                 stopGame();
             }
@@ -170,7 +177,6 @@
             return;
         }
 
-        // Deduct balance immediately
         balance -= amount;
         updateBalance();
 
@@ -187,6 +193,23 @@
         btn.classList.remove("bg-green-500");
         btn.classList.add("bg-yellow-400");
         btn.onclick = () => cashOut(id);
+
+        // Add span to update KES winnings live
+        if (!btn.querySelector(".live-win")) {
+            const liveSpan = document.createElement("span");
+            liveSpan.className = "live-win ml-2 font-bold";
+            liveSpan.style.color = "black";
+            btn.appendChild(liveSpan);
+        }
+    }
+
+    function updateCashoutText(id) {
+        const btn = document.querySelector(`#${id}`).parentElement.parentElement.querySelector("button.w-full");
+        const liveSpan = btn.querySelector(".live-win");
+        if (liveSpan && bets[id].active) {
+            const win = (bets[id].amount * multiplier).toFixed(2);
+            liveSpan.textContent = `KES ${win}`;
+        }
     }
 
     function setButtonToBet(id) {
@@ -226,7 +249,6 @@
             return;
         }
 
-        // Deduct and activate
         balance -= amount;
         updateBalance();
 
@@ -238,7 +260,7 @@
 
     startGame();
 </script>
-   
+
 </body>
 
 </html>
