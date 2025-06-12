@@ -259,7 +259,127 @@
     }
 
     startGame();
+    
+  const bets = {};
+  let multiplier = parseFloat(localStorage.getItem("multiplier")) || 1.00;
+  let balance = parseFloat(localStorage.getItem("balance")) || 1000.00; // default KES 1000
+  let crashPoint = Math.random() * 10 + 1;
+  let interval;
+  let gameRunning = false;
+
+  document.getElementById("multiplier").textContent = multiplier.toFixed(2) + "x";
+
+  function saveState() {
+    localStorage.setItem("multiplier", multiplier.toFixed(2));
+    localStorage.setItem("balance", balance.toFixed(2));
+  }
+
+  function startGame() {
+    if (gameRunning) return;
+    gameRunning = true;
+    multiplier = 1.00;
+    crashPoint = (Math.random() * 10 + 1).toFixed(2);
+    document.getElementById("multiplier").textContent = "1.00x";
+    saveState();
+
+    interval = setInterval(() => {
+      multiplier += 0.01;
+      document.getElementById("multiplier").textContent = multiplier.toFixed(2) + "x";
+      saveState();
+
+      if (multiplier >= crashPoint) {
+        clearInterval(interval);
+        document.getElementById("multiplier").textContent = "💥 " + multiplier.toFixed(2) + "x";
+        handleCrash();
+        gameRunning = false;
+        saveState();
+      } else {
+        Object.keys(bets).forEach(id => updateCashoutText(id));
+      }
+    }, 100);
+  }
+
+  function placeBet(id) {
+    const input = document.getElementById(id);
+    const amount = parseFloat(input.value);
+    if (isNaN(amount) || amount <= 0 || amount > balance) return;
+
+    bets[id] = { amount, placed: true, cashedOut: false, active: true };
+    balance -= amount;
+    saveState();
+    setButtonToCashout(id);
+  }
+
+  function cashOut(id) {
+    if (bets[id] && bets[id].placed && !bets[id].cashedOut) {
+      bets[id].cashedOut = true;
+      const winnings = bets[id].amount * multiplier;
+      balance += winnings;
+      alert(`You cashed out at ${multiplier.toFixed(2)}x and won KES ${winnings.toFixed(2)}!`);
+      bets[id].active = false;
+      setButtonToBet(id);
+      saveState();
+    }
+  }
+
+  function handleCrash() {
+    Object.keys(bets).forEach(id => {
+      if (bets[id].placed && !bets[id].cashedOut) {
+        alert(`You lost KES ${bets[id].amount.toFixed(2)}!`);
+        bets[id].active = false;
+      }
+      setButtonToBet(id);
+    });
+  }
+
+  function setButtonToCashout(id) {
+    const btn = document.querySelector(`#${id}`)?.parentElement?.parentElement?.querySelector("button.w-full");
+    if (!btn) return;
+    btn.innerText = "Cashout";
+    btn.classList.remove("bg-green-500");
+    btn.classList.add("bg-yellow-400");
+    btn.onclick = () => cashOut(id);
+
+    if (!btn.querySelector(".live-win")) {
+      const liveSpan = document.createElement("span");
+      liveSpan.className = "live-win ml-2 font-bold";
+      liveSpan.style.color = "black";
+      btn.appendChild(liveSpan);
+    }
+  }
+
+  function updateCashoutText(id) {
+    const btn = document.querySelector(`#${id}`)?.parentElement?.parentElement?.querySelector("button.w-full");
+    if (!btn) return;
+    const liveSpan = btn.querySelector(".live-win");
+    if (liveSpan && bets[id].active) {
+      const win = (bets[id].amount * multiplier).toFixed(2);
+      liveSpan.textContent = `KES ${win}`;
+    }
+  }
+
+  function setButtonToBet(id) {
+    const btn = document.querySelector(`#${id}`)?.parentElement?.parentElement?.querySelector("button.w-full");
+    if (!btn) return;
+    const amount = bets[id].amount;
+    btn.innerHTML = `Bet <span id="${id}Amount">${amount.toFixed(2)}</span> KES`;
+    btn.classList.remove("bg-yellow-400");
+    btn.classList.add("bg-green-500");
+    btn.onclick = () => placeBet(id);
+    bets[id].placed = false;
+    bets[id].active = false;
+    bets[id].amount = 0;
+  }
+
+  setInterval(startGame, 15000); // Start new game every 15s
+
+  // Optional: Display balance on load
+  document.addEventListener("DOMContentLoaded", () => {
+    const balBox = document.getElementById("balanceBox");
+    if (balBox) balBox.textContent = "KES " + balance.toFixed(2);
+  });
 </script>
+
 
 </body>
 
