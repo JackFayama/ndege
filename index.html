@@ -81,52 +81,141 @@
             </div>
         </div>
     </div>
+<script>
+    let multiplier = 1.00;
+    let interval;
+    let isRunning = false;
+    let crashPoint = 0;
+    let balance = 5000.00;
 
-    <script>
-        let multiplier = 1.00;
-        let interval;
+    const bets = {
+        bet1: { active: false, placed: false, queued: false, amount: 0 },
+        bet2: { active: false, placed: false, queued: false, amount: 0 }
+    };
 
-        function startGame() {
-            multiplier = 1.00;
+    function startGame() {
+        multiplier = 1.00;
+        crashPoint = (Math.random() * 3 + 1).toFixed(2); // Random crash between 1.00 and 4.00
+        isRunning = true;
+
+        updateMultiplier();
+        interval = setInterval(() => {
+            multiplier += 0.01;
             updateMultiplier();
-            interval = setInterval(() => {
-                multiplier += 0.01;
-                updateMultiplier();
-                if (Math.random() < 0.005 || multiplier > 50) {
-                    clearInterval(interval);
-                    setTimeout(startGame, 5000);
-                }
-            }, 50);
+
+            if (multiplier >= crashPoint) {
+                stopGame();
+            }
+        }, 50);
+    }
+
+    function stopGame() {
+        clearInterval(interval);
+        isRunning = false;
+
+        // Handle all running bets - they crash
+        Object.keys(bets).forEach(id => {
+            if (bets[id].active) {
+                bets[id].active = false;
+                setButtonToBet(id);
+            }
+
+            if (bets[id].queued) {
+                placeNextRound(id);
+            }
+        });
+
+        setTimeout(startGame, 3000);
+    }
+
+    function updateMultiplier() {
+        document.getElementById("multiplierDisplay").innerText = multiplier.toFixed(2) + "x";
+    }
+
+    function setBet(id, value) {
+        document.getElementById(id).value = value.toFixed(2);
+        document.getElementById(id + "Amount").innerText = value.toFixed(2);
+    }
+
+    function increaseBet(id) {
+        let input = document.getElementById(id);
+        let value = parseFloat(input.value) + 10;
+        setBet(id, value);
+    }
+
+    function decreaseBet(id) {
+        let input = document.getElementById(id);
+        let value = Math.max(0, parseFloat(input.value) - 10);
+        setBet(id, value);
+    }
+
+    function placeBet(id) {
+        const amount = parseFloat(document.getElementById(id).value);
+
+        if (isRunning) {
+            // Queue for next round
+            bets[id].queued = true;
+            bets[id].amount = amount;
+            alert(`Bet queued for next round: ${amount} KES`);
+            return;
         }
 
-        function updateMultiplier() {
-            document.getElementById("multiplierDisplay").innerText = multiplier.toFixed(2) + "x";
-        }
+        if (bets[id].active || bets[id].placed) return;
 
-        function setBet(id, value) {
-            document.getElementById(id).value = value.toFixed(2);
-            document.getElementById(id + "Amount").innerText = value.toFixed(2);
-        }
+        bets[id].placed = true;
+        bets[id].active = true;
+        bets[id].amount = amount;
 
-        function increaseBet(id) {
-            let input = document.getElementById(id);
-            let value = parseFloat(input.value) + 10;
-            setBet(id, value);
-        }
+        setButtonToCashout(id);
+    }
 
-        function decreaseBet(id) {
-            let input = document.getElementById(id);
-            let value = Math.max(0, parseFloat(input.value) - 10);
-            setBet(id, value);
-        }
+    function setButtonToCashout(id) {
+        const btn = document.querySelector(`#${id}`).parentElement.parentElement.querySelector("button.w-full");
+        btn.innerText = "Cashout";
+        btn.classList.remove("bg-green-500");
+        btn.classList.add("bg-yellow-400");
+        btn.onclick = () => cashOut(id);
+    }
 
-        function placeBet(id) {
-            let amount = document.getElementById(id).value;
-            alert(`Bet placed: ${amount} KES`);
-        }
+    function setButtonToBet(id) {
+        const amount = bets[id].amount;
+        const btn = document.querySelector(`#${id}`).parentElement.parentElement.querySelector("button.w-full");
+        btn.innerHTML = `Bet <span id="${id}Amount">${amount.toFixed(2)}</span> KES`;
+        btn.classList.remove("bg-yellow-400");
+        btn.classList.add("bg-green-500");
+        btn.onclick = () => placeBet(id);
+        bets[id].placed = false;
+        bets[id].active = false;
+        bets[id].amount = 0;
+    }
 
-        startGame();
-    </script>
+    function cashOut(id) {
+        if (!bets[id].active) return;
+
+        const win = (bets[id].amount * multiplier).toFixed(2);
+        balance += parseFloat(win);
+        updateBalance();
+        alert(`Cashed out ${win} KES at ${multiplier.toFixed(2)}x`);
+
+        bets[id].active = false;
+        setButtonToBet(id);
+    }
+
+    function updateBalance() {
+        document.querySelector(".text-green-400").innerText = balance.toFixed(2) + " KES";
+    }
+
+    function placeNextRound(id) {
+        bets[id].queued = false;
+        bets[id].placed = true;
+        bets[id].active = true;
+        setButtonToCashout(id);
+    }
+
+    startGame();
+</script>
+
+   
 </body>
 
 </html>
