@@ -81,15 +81,6 @@
             </div>
         </div>
     </div>
-<!-- Modal HTML (include this once in your page) -->
-<div id="modalPopup" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
-  <div class="bg-white p-6 rounded-lg shadow-lg w-80">
-    <h2 id="modalTitle" class="text-xl font-semibold mb-4">Notification</h2>
-    <p id="modalMessage" class="text-gray-700 mb-4"></p>
-    <button onclick="closeModal()" class="bg-green-500 text-white px-4 py-2 rounded w-full">OK</button>
-  </div>
-</div>
-
 <script>
 let interval;
 let isRunning = localStorage.getItem("isRunning") === "true";
@@ -139,6 +130,7 @@ function startGame() {
         Object.keys(bets).forEach(id => {
             if (bets[id].active) updateCashoutText(id);
         });
+
         if (multiplier >= crashPoint) stopGame();
     }, 50);
 }
@@ -159,7 +151,10 @@ function stopGame() {
     });
 
     saveState();
-    setTimeout(() => startGame(), 3000);
+
+    setTimeout(() => {
+        startGame();
+    }, 3000);
 }
 
 function placeBet(id) {
@@ -197,7 +192,7 @@ function placeBet(id) {
 }
 
 function setButtonToCashout(id) {
-    const btn = document.getElementById(`${id}-btn`);
+    const btn = document.querySelector(`#${id}`).parentElement.parentElement.querySelector("button.w-full");
     btn.innerText = "Cashout";
     btn.classList.remove("bg-green-500");
     btn.classList.add("bg-yellow-400");
@@ -213,7 +208,7 @@ function setButtonToCashout(id) {
 
 function updateCashoutText(id) {
     const multiplier = getCurrentMultiplier();
-    const btn = document.getElementById(`${id}-btn`);
+    const btn = document.querySelector(`#${id}`).parentElement.parentElement.querySelector("button.w-full");
     const liveSpan = btn.querySelector(".live-win");
     if (liveSpan && bets[id].active) {
         const win = (bets[id].amount * multiplier).toFixed(2);
@@ -223,9 +218,9 @@ function updateCashoutText(id) {
 
 function setButtonToBet(id) {
     const inputValue = parseFloat(document.getElementById(id).value) || 0;
-    const btn = document.getElementById(`${id}-btn`);
+    const btn = document.querySelector(`#${id}`).parentElement.parentElement.querySelector("button.w-full");
 
-    btn.innerHTML = `Bet ${inputValue.toFixed(0)} KES`;
+    btn.innerHTML = `Bet <span id="${id}Amount">${inputValue.toFixed(2)}</span> KES`;
     btn.classList.remove("bg-yellow-400");
     btn.classList.add("bg-green-500");
     btn.onclick = () => placeBet(id);
@@ -235,16 +230,6 @@ function setButtonToBet(id) {
     bets[id].amount = 0;
 
     saveState();
-}
-
-function updateBetButtonLabel(id) {
-    const input = document.getElementById(id);
-    const amount = parseFloat(input.value) || 0;
-    const btn = document.getElementById(`${id}-btn`);
-
-    if (!bets[id].active && !bets[id].placed) {
-        btn.innerHTML = `Bet ${amount.toFixed(0)} KES`;
-    }
 }
 
 function cashOut(id) {
@@ -275,7 +260,6 @@ function placeNextRound(id) {
     bets[id].queued = false;
     bets[id].placed = true;
     bets[id].active = true;
-
     setButtonToCashout(id);
     saveState();
 }
@@ -290,6 +274,15 @@ function restoreButtonStates() {
     });
 }
 
+function updateBetButtonLabel(id) {
+    const inputValue = parseFloat(document.getElementById(id).value) || 0;
+    const btn = document.querySelector(`#${id}`).parentElement.parentElement.querySelector("button.w-full");
+
+    if (!bets[id].active && !bets[id].placed) {
+        btn.innerHTML = `Bet <span id="${id}Amount">${inputValue.toFixed(2)}</span> KES`;
+    }
+}
+
 function showModal(message, title = "Notification") {
     document.getElementById("modalTitle").innerText = title;
     document.getElementById("modalMessage").innerText = message;
@@ -300,7 +293,7 @@ function closeModal() {
     document.getElementById("modalPopup").classList.add("hidden");
 }
 
-// Initialize
+// Run on load
 updateBalance();
 restoreButtonStates();
 updateMultiplier();
@@ -311,6 +304,7 @@ if (isRunning) {
         Object.keys(bets).forEach(id => {
             if (bets[id].active) updateCashoutText(id);
         });
+
         if (multiplier >= crashPoint) stopGame();
     }, 50);
 } else {
@@ -318,6 +312,16 @@ if (isRunning) {
 }
 </script>
 
+<!-- Modal Popup -->
+<div id="modalPopup" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-60">
+  <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full text-center">
+    <h2 class="text-lg font-semibold mb-2 text-gray-800" id="modalTitle">Notification</h2>
+    <p class="text-gray-600 mb-4" id="modalMessage">This is a message.</p>
+    <button onclick="closeModal()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+      OK
+    </button>
+  </div>
+</div>
 
 </body>
 
