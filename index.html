@@ -162,12 +162,12 @@
         const amount = parseFloat(document.getElementById(id).value);
 
         if (isNaN(amount) || amount <= 0) {
-            alert("Please enter a valid bet amount.");
+            showModal("Please enter a valid bet amount.");
             return;
         }
 
         if (amount > balance) {
-            alert("Low balance. Please top up.");
+            showModal("Low balance. Please top up.");
             return;
         }
 
@@ -176,7 +176,7 @@
         if (isRunning) {
             bets[id].queued = true;
             bets[id].amount = amount;
-            alert(`Bet queued for next round: ${amount} KES`);
+            showModal(`Bet queued for next round: ${amount} KES`);
             saveState();
             return;
         }
@@ -247,7 +247,7 @@
         const amount = bets[id].amount;
 
         if (amount > balance) {
-            alert("Low balance. Please top up.");
+            showModal("Low balance. Please top up.");
             bets[id].queued = false;
             return;
         }
@@ -290,8 +290,29 @@
     } else {
         startGame();
     }
+
+    function showModal(message, title = "Notification") {
+    document.getElementById("modalTitle").innerText = title;
+    document.getElementById("modalMessage").innerText = message;
+    document.getElementById("modalPopup").classList.remove("hidden");
+}
+
+function closeModal() {
+    document.getElementById("modalPopup").classList.add("hidden");
+}
+
 </script>
 
+<!-- Modal Popup -->
+<div id="modalPopup" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-60">
+  <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full text-center">
+    <h2 class="text-lg font-semibold mb-2 text-gray-800" id="modalTitle">Notification</h2>
+    <p class="text-gray-600 mb-4" id="modalMessage">This is a message.</p>
+    <button onclick="closeModal()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+      OK
+    </button>
+  </div>
+</div>
 
 </body>
 
