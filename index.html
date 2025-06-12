@@ -30,6 +30,7 @@
             <div class="mt-2 flex items-center space-x-2">
                 <img src="https://placekitten.com/32/32" class="rounded-full" />
                 <img src="https://placekitten.com/32/33" class="rounded-full" />
+                <span id="bet1_liveprofit" class="text-sm">0.00 KES</span>
                 <span class="text-sm">305</span>
             </div>
         </div>
@@ -82,94 +83,176 @@
         </div>
     </div>
 
-    <script>
-        let multiplier = 1.00;
-        let interval;
-        let isBettingOpen = true;
-        let pendingBets = [];
-        let balance = 5000;
+   <script>
+    let multiplier = 1.00;
+    let interval;
+    let gameRunning = false;
+    let nextGameTimeout;
+    let userBalance = 5000.00;
+    let activeBets = [];
 
-        function startGame() {
-            multiplier = 1.00;
+    const balanceDisplay = document.querySelector(".text-green-400");
+
+    function startGame() {
+        multiplier = 1.00;
+        gameRunning = true;
+        updateMultiplier();
+        updateActiveBets();
+
+        interval = setInterval(() => {
+            multiplier += 0.01;
             updateMultiplier();
-            isBettingOpen = true;
+            updateActiveBets();
 
-            setTimeout(() => {
-                isBettingOpen = false; // disable betting 5 sec before start
-            }, 5000);
-
-            interval = setInterval(() => {
-                multiplier += 0.01;
-                updateMultiplier();
-                updateProfits();
-                if (Math.random() < 0.005 || multiplier > 50) {
-                    clearInterval(interval);
-                    endRound();
-                }
-            }, 50);
-        }
-
-        function endRound() {
-            pendingBets = []; // reset for next round
-            setTimeout(startGame, 5000);
-        }
-
-        function updateMultiplier() {
-            document.getElementById("multiplierDisplay").innerText = multiplier.toFixed(2) + "x";
-        }
-
-        function updateProfits() {
-            pendingBets.forEach(bet => {
-                const profit = (multiplier * bet.amount).toFixed(2);
-                // You could show profit live if needed
-            });
-        }
-
-        function setBet(id, value) {
-            document.getElementById(id).value = value.toFixed(2);
-            document.getElementById(id + "Amount").innerText = value.toFixed(2);
-        }
-
-        function increaseBet(id) {
-            let input = document.getElementById(id);
-            let value = parseFloat(input.value) + 10;
-            setBet(id, value);
-        }
-
-        function decreaseBet(id) {
-            let input = document.getElementById(id);
-            let value = Math.max(0, parseFloat(input.value) - 10);
-            setBet(id, value);
-        }
-
-        function placeBet(id) {
-            let amount = parseFloat(document.getElementById(id).value);
-            if (amount > balance) {
-                alert("Insufficient balance");
-                return;
+            if (Math.random() < 0.005 || multiplier > 50) {
+                endGame();
             }
+        }, 50);
+    }
 
-            balance -= amount;
-            updateBalance();
+    function endGame() {
+        clearInterval(interval);
+        gameRunning = false;
 
-            if (isBettingOpen) {
-                pendingBets.push({ id, amount });
-                alert(`Bet of ${amount} KES placed for current round`);
-            } else {
-                // queue for next round
-                setTimeout(() => {
-                    pendingBets.push({ id, amount });
-                    alert(`Bet of ${amount} KES will start on next round`);
-                }, 5000);
+        // Reset activeBets
+        activeBets = activeBets.map(bet => {
+            bet.running = false;
+            bet.waiting = true;
+            bet.profit = 0;
+            return bet;
+        });
+
+        updateActiveBets();
+
+        // Start next game in 5 seconds
+        nextGameTimeout = setTimeout(() => {
+            activateWaitingBets();
+            startGame();
+        }, 5000);
+    }
+
+    function activateWaitingBets() {
+        activeBets = activeBets.map(bet => {
+            if (bet.waiting) {
+                bet.running = true;
+                bet.waiting = false;
+            }
+            return bet;
+        });
+    }
+
+    function updateMultiplier() {
+        document.getElementById("multiplierDisplay").innerText = multiplier.toFixed(2) + "x";
+    }
+
+    function updateActiveBets() {
+        activeBets.forEach(bet => {
+            if (bet.running) {
+                const liveProfit = (bet.amount * multiplier).toFixed(2);
+                document.getElementById(bet.displayId).innerText = liveProfit + " KES";
+                const btn = document.getElementById(bet.buttonId);
+                btn.innerText = "CASH OUT";
+                btn.classList.remove("bg-green-500");
+                btn.classList.add("bg-blue-500");
+            }
+        });
+    }
+
+    function cashOut(betId) {
+        const index = activeBets.findIndex(bet => bet.id === betId);
+        if (index >= 0) {
+            const bet = activeBets[index];
+            if (bet.running) {
+                const finalProfit = (bet.amount * multiplier);
+                userBalance += finalProfit;
+                balanceDisplay.innerText = userBalance.toFixed(2) + " KES";
+
+                const btn = document.getElementById(bet.buttonId);
+                btn.innerText = "CASHED OUT";
+                btn.disabled = true;
+                btn.classList.remove("bg-blue-500");
+                btn.classList.add("bg-gray-600");
+
+                document.getElementById(bet.displayId).innerText = finalProfit.toFixed(2) + " KES";
+
+                activeBets.splice(index, 1);
             }
         }
+    }
 
-        function updateBalance() {
-            document.getElementById("balance").innerText = balance.toFixed(2) + " KES";
+    function placeBet(inputId) {
+        const amount = parseFloat(document.getElementById(inputId).value);
+        if (isNaN(amount) || amount <= 0) return;
+
+        if (userBalance < amount) {
+            alert("Insufficient balance");
+            return;
         }
 
-        startGame();
-    </script>
+        userBalance -= amount;
+        balanceDisplay.innerText = userBalance.toFixed(2) + " KES";
+
+        const betId = inputId + "_bet_" + Date.now();
+        const displayId = inputId + "_liveprofit";
+        const buttonId = inputId + "_btn";
+
+        activeBets.push({
+            id: betId,
+            inputId,
+            displayId,
+            buttonId,
+            amount,
+            running: gameRunning && multiplier < 1.10, // only if bet placed early enough
+            waiting: !gameRunning || multiplier >= 1.10,
+            profit: 0
+        });
+
+        const btn = document.getElementById(buttonId);
+        btn.innerText = gameRunning ? "WAITING" : "CASH OUT";
+        btn.classList.remove("bg-green-500");
+        btn.classList.add(gameRunning ? "bg-gray-500" : "bg-blue-500");
+
+        const display = document.getElementById(displayId);
+        display.innerText = gameRunning ? "Waiting..." : amount.toFixed(2) + " KES";
+    }
+
+    function setBet(id, value) {
+        let numericValue = parseFloat(value);
+        if (isNaN(numericValue)) numericValue = 0;
+        document.getElementById(id).value = numericValue.toFixed(2);
+        document.getElementById(id + "Amount").innerText = numericValue.toFixed(2);
+    }
+
+    function increaseBet(id) {
+        let input = document.getElementById(id);
+        let value = parseFloat(input.value);
+        if (isNaN(value)) value = 0;
+        setBet(id, value + 10);
+    }
+
+    function decreaseBet(id) {
+        let input = document.getElementById(id);
+        let value = parseFloat(input.value);
+        if (isNaN(value)) value = 0;
+        setBet(id, Math.max(0, value - 10));
+    }
+
+    // Add placeholder for live profit display in the original spot
+    document.addEventListener("DOMContentLoaded", () => {
+        const placeholder = document.querySelector(".text-sm");
+        placeholder.innerHTML = `<span id="bet1_liveprofit">0.00 KES</span>`;
+        const btn1 = document.querySelector('[onclick="placeBet(\'bet1\')"]');
+        btn1.id = "bet1_btn";
+        btn1.setAttribute("onclick", "cashOut('bet1_bet_0')");
+
+        const btn2 = document.querySelector('[onclick="placeBet(\'bet2\')"]');
+        btn2.id = "bet2_btn";
+        btn2.setAttribute("onclick", "cashOut('bet2_bet_0')");
+    });
+
+    startGame();
+</script>
+
 </body>
 
 </html>
