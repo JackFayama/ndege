@@ -82,48 +82,67 @@
         </div>
     </div>
 <script>
-    let multiplier = parseFloat(localStorage.getItem('multiplier')) || 1.00;
     let interval;
-    let isRunning = false;
-    let crashPoint = 0;
-    let balance = parseFloat(localStorage.getItem('balance')) || 5000.00;
+    let isRunning = localStorage.getItem("isRunning") === "true";
+    let gameStartTime = parseFloat(localStorage.getItem("gameStartTime")) || Date.now();
+    let crashPoint = parseFloat(localStorage.getItem("crashPoint")) || (Math.random() * 3 + 1).toFixed(2);
+    let balance = parseFloat(localStorage.getItem("balance")) || 5000.00;
 
-    const bets = {
+    let bets = JSON.parse(localStorage.getItem("bets")) || {
         bet1: { active: false, placed: false, queued: false, amount: 0 },
         bet2: { active: false, placed: false, queued: false, amount: 0 }
     };
 
+    function saveState() {
+        localStorage.setItem("balance", balance.toFixed(2));
+        localStorage.setItem("isRunning", isRunning);
+        localStorage.setItem("crashPoint", crashPoint);
+        localStorage.setItem("bets", JSON.stringify(bets));
+    }
+
+    function getCurrentMultiplier() {
+        const elapsed = (Date.now() - gameStartTime) / 1000; // seconds
+        return 1 + elapsed * 0.2; // same as +0.01 every 50ms
+    }
+
+    function updateMultiplier() {
+        const multiplier = getCurrentMultiplier();
+        document.getElementById("multiplierDisplay").innerText = multiplier.toFixed(2) + "x";
+        localStorage.setItem("multiplier", multiplier.toFixed(2));
+        return multiplier;
+    }
+
+    function updateBalance() {
+        document.querySelector(".text-green-400").innerText = balance.toFixed(2) + " KES";
+        localStorage.setItem("balance", balance.toFixed(2));
+    }
+
     function startGame() {
-        multiplier = 1.00;
-        crashPoint = (Math.random() * 3 + 1).toFixed(2); // Crash between 1.00–4.00
         isRunning = true;
+        gameStartTime = Date.now();
+        crashPoint = (Math.random() * 3 + 1).toFixed(2);
+        localStorage.setItem("crashPoint", crashPoint);
+        localStorage.setItem("gameStartTime", gameStartTime);
+        localStorage.setItem("isRunning", true);
 
-        updateMultiplier();
         interval = setInterval(() => {
-            multiplier += 0.01;
-            updateMultiplier();
-            localStorage.setItem('multiplier', multiplier.toFixed(2));
+            const multiplier = updateMultiplier();
 
-            // Update live winnings on active bets
             Object.keys(bets).forEach(id => {
-                if (bets[id].active) {
-                    updateCashoutText(id);
-                }
+                if (bets[id].active) updateCashoutText(id);
             });
 
-            if (multiplier >= crashPoint) {
-                stopGame();
-            }
+            if (multiplier >= crashPoint) stopGame();
         }, 50);
     }
 
     function stopGame() {
         clearInterval(interval);
         isRunning = false;
+        localStorage.setItem("isRunning", false);
 
         Object.keys(bets).forEach(id => {
             if (bets[id].active) {
-                // Player loses
                 bets[id].active = false;
                 setButtonToBet(id);
             }
@@ -132,29 +151,11 @@
             }
         });
 
-        setTimeout(startGame, 3000);
-    }
+        saveState();
 
-    function updateMultiplier() {
-        document.getElementById("multiplierDisplay").innerText = multiplier.toFixed(2) + "x";
-        localStorage.setItem('multiplier', multiplier.toFixed(2));
-    }
-
-    function setBet(id, value) {
-        document.getElementById(id).value = value.toFixed(2);
-        document.getElementById(id + "Amount").innerText = value.toFixed(2);
-    }
-
-    function increaseBet(id) {
-        let input = document.getElementById(id);
-        let value = parseFloat(input.value) + 10;
-        setBet(id, value);
-    }
-
-    function decreaseBet(id) {
-        let input = document.getElementById(id);
-        let value = Math.max(0, parseFloat(input.value) - 10);
-        setBet(id, value);
+        setTimeout(() => {
+            startGame();
+        }, 3000);
     }
 
     function placeBet(id) {
@@ -176,11 +177,11 @@
             bets[id].queued = true;
             bets[id].amount = amount;
             alert(`Bet queued for next round: ${amount} KES`);
+            saveState();
             return;
         }
 
         balance -= amount;
-        localStorage.setItem('balance', balance.toFixed(2));
         updateBalance();
 
         bets[id].placed = true;
@@ -188,6 +189,7 @@
         bets[id].amount = amount;
 
         setButtonToCashout(id);
+        saveState();
     }
 
     function setButtonToCashout(id) {
@@ -197,7 +199,6 @@
         btn.classList.add("bg-yellow-400");
         btn.onclick = () => cashOut(id);
 
-        // Add span to update KES winnings live
         if (!btn.querySelector(".live-win")) {
             const liveSpan = document.createElement("span");
             liveSpan.className = "live-win ml-2 font-bold";
@@ -207,6 +208,7 @@
     }
 
     function updateCashoutText(id) {
+        const multiplier = getCurrentMultiplier();
         const btn = document.querySelector(`#${id}`).parentElement.parentElement.querySelector("button.w-full");
         const liveSpan = btn.querySelector(".live-win");
         if (liveSpan && bets[id].active) {
@@ -225,24 +227,20 @@
         bets[id].placed = false;
         bets[id].active = false;
         bets[id].amount = 0;
+        saveState();
     }
 
     function cashOut(id) {
         if (!bets[id].active) return;
 
-        const win = (bets[id].amount * multiplier).toFixed(2);
+        const win = (bets[id].amount * getCurrentMultiplier()).toFixed(2);
         balance += parseFloat(win);
-        localStorage.setItem('balance', balance.toFixed(2));
         updateBalance();
-        alert(`Cashed out ${win} KES at ${multiplier.toFixed(2)}x`);
+        alert(`Cashed out ${win} KES at ${getCurrentMultiplier().toFixed(2)}x`);
 
         bets[id].active = false;
         setButtonToBet(id);
-    }
-
-    function updateBalance() {
-        document.querySelector(".text-green-400").innerText = balance.toFixed(2) + " KES";
-        localStorage.setItem('balance', balance.toFixed(2));
+        saveState();
     }
 
     function placeNextRound(id) {
@@ -255,19 +253,45 @@
         }
 
         balance -= amount;
-        localStorage.setItem('balance', balance.toFixed(2));
         updateBalance();
 
         bets[id].queued = false;
         bets[id].placed = true;
         bets[id].active = true;
         setButtonToCashout(id);
+        saveState();
     }
 
-    updateBalance(); // Refresh display with stored balance
-    updateMultiplier(); // Refresh display with stored multiplier
-    startGame();
+    function restoreButtonStates() {
+        Object.keys(bets).forEach(id => {
+            if (bets[id].active) {
+                setButtonToCashout(id);
+            } else {
+                setButtonToBet(id);
+            }
+        });
+    }
+
+    // Initialize
+    updateBalance();
+    restoreButtonStates();
+    updateMultiplier();
+
+    if (isRunning) {
+        interval = setInterval(() => {
+            const multiplier = updateMultiplier();
+
+            Object.keys(bets).forEach(id => {
+                if (bets[id].active) updateCashoutText(id);
+            });
+
+            if (multiplier >= crashPoint) stopGame();
+        }, 50);
+    } else {
+        startGame();
+    }
 </script>
+
 
 </body>
 
