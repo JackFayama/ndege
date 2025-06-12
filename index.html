@@ -95,7 +95,7 @@
 
     function startGame() {
         multiplier = 1.00;
-        crashPoint = (Math.random() * 3 + 1).toFixed(2); // Random crash between 1.00 and 4.00
+        crashPoint = (Math.random() * 3 + 1).toFixed(2); // Crash between 1.00–4.00
         isRunning = true;
 
         updateMultiplier();
@@ -113,13 +113,12 @@
         clearInterval(interval);
         isRunning = false;
 
-        // Handle all running bets - they crash
         Object.keys(bets).forEach(id => {
             if (bets[id].active) {
+                // Player loses
                 bets[id].active = false;
                 setButtonToBet(id);
             }
-
             if (bets[id].queued) {
                 placeNextRound(id);
             }
@@ -152,15 +151,28 @@
     function placeBet(id) {
         const amount = parseFloat(document.getElementById(id).value);
 
+        if (isNaN(amount) || amount <= 0) {
+            alert("Please enter a valid bet amount.");
+            return;
+        }
+
+        if (amount > balance) {
+            alert("Low balance. Please top up.");
+            return;
+        }
+
+        if (bets[id].active || bets[id].placed) return;
+
         if (isRunning) {
-            // Queue for next round
             bets[id].queued = true;
             bets[id].amount = amount;
             alert(`Bet queued for next round: ${amount} KES`);
             return;
         }
 
-        if (bets[id].active || bets[id].placed) return;
+        // Deduct balance immediately
+        balance -= amount;
+        updateBalance();
 
         bets[id].placed = true;
         bets[id].active = true;
@@ -206,6 +218,18 @@
     }
 
     function placeNextRound(id) {
+        const amount = bets[id].amount;
+
+        if (amount > balance) {
+            alert("Low balance. Please top up.");
+            bets[id].queued = false;
+            return;
+        }
+
+        // Deduct and activate
+        balance -= amount;
+        updateBalance();
+
         bets[id].queued = false;
         bets[id].placed = true;
         bets[id].active = true;
@@ -214,7 +238,6 @@
 
     startGame();
 </script>
-
    
 </body>
 
