@@ -4,102 +4,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Bet Multiplier</title>
+    <title>Aviator Game</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: white;
+            font-family: sans-serif;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+        .modal-content {
+            background: #1f2937;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+    </style>
 </head>
 
-<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center">
-    <div class="bg-gray-800 p-6 rounded-xl shadow-xl w-80 text-center">
-        <h2 class="text-xl font-bold mb-4">Live Crash Bet</h2>
+<body class="min-h-screen flex flex-col items-center justify-start py-4 px-2">
+    <!-- Header -->
+    <div class="w-full max-w-5xl bg-gray-900 rounded-lg p-4 flex justify-between items-center">
+        <div class="text-red-500 text-2xl font-bold">Aviator</div>
+        <div id="balance" class="text-green-400 font-semibold text-xl">5000.00 KES</div>
+    </div>
 
-        <!-- Display multiplier or cash out amount -->
-        <div class="text-4xl font-mono mb-2">
-            <span id="liveProfit">1.00x</span>
+    <!-- Game Area -->
+    <div class="w-full max-w-5xl bg-gray-800 mt-4 p-4 rounded-xl flex flex-col items-center relative">
+        <div class="bg-yellow-500 w-full text-center py-1 rounded-t-md font-bold">FUN MODE</div>
+        <div class="bg-black w-full flex flex-col justify-center items-center py-12 rounded-b-md">
+            <div id="multiplierDisplay" class="text-6xl font-bold text-purple-400">1.00x</div>
+            <div class="mt-2 flex items-center space-x-2">
+                <img src="https://placekitten.com/32/32" class="rounded-full" />
+                <img src="https://placekitten.com/32/33" class="rounded-full" />
+                <span class="text-sm">305</span>
+            </div>
+            <div class="absolute bottom-2 right-4 text-white text-sm">Live Multiplier</div>
+        </div>
+    </div>
+
+    <!-- Betting Area -->
+    <div class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <!-- Bet 1 -->
+        <div class="bg-gray-900 rounded-xl p-4">
+            <div class="bg-gray-800 rounded-lg p-3">
+                <div class="flex justify-between mb-2">
+                    <button class="bg-gray-700 px-3 py-1 rounded">Bet</button>
+                    <button class="bg-gray-700 px-3 py-1 rounded">Auto</button>
+                </div>
+                <div class="flex items-center space-x-2 mb-2">
+                    <button onclick="decreaseBet('bet1')" class="bg-gray-700 px-3 py-1 rounded">-</button>
+                    <input id="bet1" type="number" class="w-full text-center bg-gray-800 text-white py-1 rounded" value="10.00">
+                    <button onclick="increaseBet('bet1')" class="bg-gray-700 px-3 py-1 rounded">+</button>
+                </div>
+                <div class="grid grid-cols-3 gap-2 mb-2">
+                    <button onclick="setBet('bet1', 100)" class="bg-gray-700 py-1 rounded">100</button>
+                    <button onclick="setBet('bet1', 200)" class="bg-gray-700 py-1 rounded">200</button>
+                    <button onclick="setBet('bet1', 500)" class="bg-gray-700 py-1 rounded">500</button>
+                    <button onclick="setBet('bet1', 10000)" class="bg-gray-700 py-1 rounded col-span-3">10,000</button>
+                </div>
+                <button id="bet1Btn" onclick="handleBet('bet1')" class="w-full bg-green-500 py-2 rounded text-white font-bold">Bet <span id="bet1Amount">10.00</span> KES</button>
+            </div>
         </div>
 
-        <!-- Balance Display -->
-        <div class="mb-4">
-            <span class="text-green-400">Balance: </span>
-            <span id="balanceAmount" class="text-green-400">5000.00 KES</span>
+        <!-- Bet 2 -->
+        <div class="bg-gray-900 rounded-xl p-4">
+            <div class="bg-gray-800 rounded-lg p-3">
+                <div class="flex justify-between mb-2">
+                    <button class="bg-gray-700 px-3 py-1 rounded">Bet</button>
+                    <button class="bg-gray-700 px-3 py-1 rounded">Auto</button>
+                </div>
+                <div class="flex items-center space-x-2 mb-2">
+                    <button onclick="decreaseBet('bet2')" class="bg-gray-700 px-3 py-1 rounded">-</button>
+                    <input id="bet2" type="number" class="w-full text-center bg-gray-800 text-white py-1 rounded" value="10.00">
+                    <button onclick="increaseBet('bet2')" class="bg-gray-700 px-3 py-1 rounded">+</button>
+                </div>
+                <div class="grid grid-cols-3 gap-2 mb-2">
+                    <button onclick="setBet('bet2', 100)" class="bg-gray-700 py-1 rounded">100</button>
+                    <button onclick="setBet('bet2', 200)" class="bg-gray-700 py-1 rounded">200</button>
+                    <button onclick="setBet('bet2', 500)" class="bg-gray-700 py-1 rounded">500</button>
+                    <button onclick="setBet('bet2', 10000)" class="bg-gray-700 py-1 rounded col-span-3">10,000</button>
+                </div>
+                <button id="bet2Btn" onclick="handleBet('bet2')" class="w-full bg-green-500 py-2 rounded text-white font-bold">Bet <span id="bet2Amount">10.00</span> KES</button>
+            </div>
         </div>
+    </div>
 
-        <!-- Bet Button -->
-        <button id="betBtn" onclick="handleBet()" class="bg-green-500 text-white px-4 py-2 rounded w-full">BET</button>
+    <!-- Modal -->
+    <div id="modal" class="modal hidden">
+        <div class="modal-content text-white">
+            <p id="modalMessage"></p>
+            <button onclick="closeModal()" class="mt-4 px-4 py-2 bg-green-500 rounded">Close</button>
+        </div>
     </div>
 
     <script>
-        let balance = 5000;
-        let betAmount = 100;
         let multiplier = 1.00;
         let interval;
-        let isBetActive = false;
-
-        const profitDisplay = document.getElementById("liveProfit");
-        const betBtn = document.getElementById("betBtn");
-        const balanceDisplay = document.getElementById("balanceAmount");
+        let currentBalance = 5000;
+        let isRoundRunning = false;
+        const activeBets = {};
 
         function updateMultiplier() {
-            multiplier += 0.01;
-            if (isBetActive) {
-                const profit = (betAmount * multiplier).toFixed(2);
-                profitDisplay.textContent = `${profit} KES`;
-            } else {
-                profitDisplay.textContent = `${multiplier.toFixed(2)}x`;
-            }
-
-            // Simulate random crash
-            if (Math.random() < 0.0015) crashGame();
+            document.getElementById("multiplierDisplay").innerText = multiplier.toFixed(2) + "x";
         }
 
-        function crashGame() {
-            clearInterval(interval);
-            if (isBetActive) {
-                alert("You lost the bet!");
-                isBetActive = false;
-                resetButton();
-            }
-            setTimeout(startMultiplier, 2000);
-        }
-
-        function startMultiplier() {
+        function startGame() {
             multiplier = 1.00;
-            profitDisplay.textContent = "1.00x";
-            interval = setInterval(updateMultiplier, 60);
+            isRoundRunning = true;
+            updateMultiplier();
+            interval = setInterval(() => {
+                multiplier += 0.01;
+                updateMultiplier();
+                if (Math.random() < 0.005 || multiplier > 50) {
+                    clearInterval(interval);
+                    isRoundRunning = false;
+                    resolveBets();
+                    setTimeout(startGame, 5000);
+                }
+            }, 50);
         }
 
-        function handleBet() {
-            if (!isBetActive) {
-                if (balance < betAmount) {
-                    alert("Insufficient balance!");
-                    return;
+        function resolveBets() {
+            Object.keys(activeBets).forEach(id => {
+                const bet = activeBets[id];
+                const btn = document.getElementById(id + "Btn");
+                if (!bet.cashOut) {
+                    currentBalance -= bet.amount;
+                    showModal(`You lost ${bet.amount} KES.`);
                 }
-                balance -= betAmount;
-                balanceDisplay.textContent = `${balance.toFixed(2)} KES`;
+                btn.classList.remove("bg-blue-500");
+                btn.classList.add("bg-green-500");
+                btn.innerHTML = `Bet <span id="${id}Amount">${bet.amount.toFixed(2)}</span> KES`;
+            });
+            Object.keys(activeBets).forEach(id => delete activeBets[id]);
+            updateBalance();
+        }
 
-                isBetActive = true;
-                betBtn.textContent = "CASH OUT";
-                betBtn.classList.remove("bg-green-500");
-                betBtn.classList.add("bg-blue-500");
+        function setBet(id, value) {
+            document.getElementById(id).value = value.toFixed(2);
+            document.getElementById(id + "Amount").innerText = value.toFixed(2);
+        }
 
+        function increaseBet(id) {
+            let value = parseFloat(document.getElementById(id).value) + 10;
+            setBet(id, value);
+        }
+
+        function decreaseBet(id) {
+            let value = Math.max(0, parseFloat(document.getElementById(id).value) - 10);
+            setBet(id, value);
+        }
+
+        function updateBalance() {
+            document.getElementById("balance").innerText = currentBalance.toFixed(2) + " KES";
+        }
+
+        function showModal(message) {
+            document.getElementById("modalMessage").innerText = message;
+            document.getElementById("modal").classList.remove("hidden");
+        }
+
+        function closeModal() {
+            document.getElementById("modal").classList.add("hidden");
+        }
+
+        function handleBet(id) {
+            const btn = document.getElementById(id + "Btn");
+            const amount = parseFloat(document.getElementById(id).value);
+
+            if (activeBets[id]) {
+                // Cash out
+                const win = multiplier * activeBets[id].amount;
+                currentBalance += win;
+                activeBets[id].cashOut = true;
+                btn.classList.remove("bg-blue-500");
+                btn.classList.add("bg-green-500");
+                btn.innerHTML = `Bet <span id="${id}Amount">${activeBets[id].amount.toFixed(2)}</span> KES`;
+                showModal(`You cashed out ${win.toFixed(2)} KES!`);
+                updateBalance();
+            } else if (!isRoundRunning) {
+                showModal("Wait for the next round to place a bet.");
             } else {
-                const winAmount = betAmount * multiplier;
-                balance += winAmount;
-                balanceDisplay.textContent = `${balance.toFixed(2)} KES`;
-
-                profitDisplay.textContent = `${winAmount.toFixed(2)} KES`;
-
-                isBetActive = false;
-                resetButton();
+                // Place new bet
+                activeBets[id] = { amount, cashOut: false };
+                btn.classList.remove("bg-green-500");
+                btn.classList.add("bg-blue-500");
+                btn.innerText = "CASH OUT";
             }
         }
 
-        function resetButton() {
-            betBtn.textContent = "BET";
-            betBtn.classList.remove("bg-blue-500");
-            betBtn.classList.add("bg-green-500");
-        }
-
-        startMultiplier();
+        startGame();
     </script>
 </body>
 
