@@ -137,13 +137,24 @@
 
 
 <!-- Withdraw Modal -->
+<!-- Withdraw Modal (Professional Layout) -->
 <div id="withdrawModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center">
-    <div class="bg-white text-black rounded-xl p-6 w-96 text-center">
-        <h2 class="text-xl font-bold mb-2">Withdraw Funds</h2>
-        <input type="number" id="withdrawAmount" placeholder="Enter Amount" class="w-full border rounded p-2 mb-2"/>
-        <input type="text" id="withdrawCode" placeholder="Enter Security Code" class="w-full border rounded p-2 mb-4"/>
-        <button onclick="confirmWithdraw()" class="bg-yellow-600 text-white px-4 py-2 rounded w-full">Withdraw</button>
+  <div class="bg-white text-black rounded-xl p-6 w-[420px]">
+    <h2 class="text-xl font-bold mb-4 text-center">Withdraw Funds</h2>
+
+    <div class="flex items-center border border-yellow-400 rounded-lg p-4 mb-4 bg-yellow-50">
+      <img src="withdraw.png" alt="Withdraw Icon" class="w-12 h-12 object-contain mr-4" />
+      <div>
+        <p class="text-md font-semibold text-yellow-800">Withdraw to M-PESA / Airtel</p>
+        <p class="text-sm text-gray-600">You must enter the correct security code sent to your email.</p>
+      </div>
     </div>
+
+    <input type="number" id="withdrawAmount" placeholder="Enter Amount" class="w-full border rounded p-2 mb-2" />
+    <input type="text" id="withdrawCode" placeholder="Enter Security Code" class="w-full border rounded p-2 mb-4" />
+
+    <button onclick="confirmWithdraw()" class="bg-yellow-600 text-white px-4 py-2 rounded w-full font-semibold">Withdraw</button>
+  </div>
 </div>
 
 
@@ -492,7 +503,7 @@ function showPaymentInstructions(method) {
         payLabel.textContent = 'Go to M-PESA';
     } else {
         payTitle.textContent = 'Pay via Airtel Money';
-        payImage.src = 'airtel.png';
+        payImage.src = 'visa.jpg';
         payLabel.textContent = 'Go to Airtel Money';
     }
 }
