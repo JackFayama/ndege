@@ -87,12 +87,14 @@
         </div>
     </div>
 
-    <!-- Main Action Modal -->
+<!-- Main Action Modal (Updated with side-by-side buttons) -->
 <div id="balanceModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center">
-    <div class="bg-white text-black rounded-xl p-6 w-80 text-center">
+    <div class="bg-white text-black rounded-xl p-6 w-96 text-center">
         <h2 class="text-xl font-bold mb-4">Balance Options</h2>
-        <button onclick="openDepositMethod()" class="bg-blue-500 text-white px-4 py-2 rounded mb-2 w-full">Deposit</button>
-        <button onclick="openWithdrawModal()" class="bg-yellow-500 text-white px-4 py-2 rounded w-full">Withdraw</button>
+        <div class="flex justify-between gap-4">
+            <button onclick="openDepositMethod()" class="flex-1 bg-blue-500 text-white py-3 rounded-lg font-bold">Deposit</button>
+            <button onclick="openWithdrawModal()" class="flex-1 bg-yellow-500 text-white py-3 rounded-lg font-bold">Withdraw</button>
+        </div>
     </div>
 </div>
 
