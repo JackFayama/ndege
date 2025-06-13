@@ -564,19 +564,19 @@ function confirmWithdraw() {
     let balance = parseFloat(localStorage.getItem("balance") || "0");
 
     if (isNaN(amount) || amount <= 0) {
-        return showModal("Invalid Amount", "Please enter a valid amount to withdraw.");
+        return showModal("Please enter a valid amount to withdraw.");
     }
 
     if (!code) {
-        return showModal("Missing Code", "Please enter the security code sent to your email.");
+        return showModal("Please enter the security code sent to your email.");
     }
 
     if (code !== "1234") {
-        return showModal("Invalid Code", "The security code you entered is incorrect.");
+        return showModal("The security code you entered is incorrect.");
     }
 
     if (amount > balance) {
-        return showModal("Insufficient Balance", "You do not have enough balance to withdraw that amount.");
+        return showModal("You do not have enough balance to withdraw that amount.");
     }
 
     // Proceed with withdrawal
@@ -641,7 +641,7 @@ function closeModal() {
                 closeAllModals();
                 showModal("Deposit Success", `KES ${amount.toFixed(2)} added.`);
             } else {
-                showModal("Invalid", "Wrong code or amount.");
+                showModal("Invalid", "The security code you entered is incorrect");
             }
         }
 
@@ -669,7 +669,7 @@ function closeModal() {
                 closeAllModals();
                 showModal("Withdraw Success", `KES ${amount.toFixed(2)} withdrawn.`);
             } else {
-                showModal("Error", "Invalid code or insufficient balance.");
+                showModal("Error", "You do not have enough balance to withdraw that amount.");
             }
         }
 
