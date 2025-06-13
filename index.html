@@ -15,16 +15,17 @@
 </head>
 <body class="min-h-screen flex flex-col items-center justify-start py-4 px-2">
 
-  <!-- Modal Popup -->
-  <div id="modalPopup" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-110">
-    <div class="bg-white text-black rounded-xl p-6 max-w-sm w-full shadow-xl">
-      <h2 id="modalTitle" class="text-xl font-bold mb-2">Title</h2>
-      <p id="modalMessage" class="mb-4">Message content will appear here.</p>
-      <button onclick="closeModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
-        Close
-      </button>
-    </div>
+ <!-- Modal Popup -->
+<div id="modalPopup" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999]">
+  <div class="bg-white text-black rounded-xl p-6 max-w-sm w-full shadow-xl">
+    <h2 id="modalTitle" class="text-xl font-bold mb-2">Title</h2>
+    <p id="modalMessage" class="mb-4">Message content will appear here.</p>
+    <button onclick="closeModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+      Close
+    </button>
   </div>
+</div>
+
 
   <!-- Login/Signup Section -->
   <div id="authSection" class="flex items-center justify-center min-h-screen w-full relative">
@@ -675,21 +676,6 @@ function confirmWithdraw() {
       localStorage.removeItem("loggedIn");
     };
   </script>
-  <script>
-  window.onload = () => {
-    const isLoggedIn = localStorage.getItem("loggedIn") === "true";
-    const username = localStorage.getItem("username") || "Player";
-
-    if (isLoggedIn) {
-      document.getElementById('authSection').classList.add('hidden');
-      document.getElementById('gameSection').classList.remove('hidden');
-      document.getElementById('usernameDisplay').innerText = username;
-    } else {
-      document.getElementById('authSection').classList.remove('hidden');
-      document.getElementById('gameSection').classList.add('hidden');
-    }
-  };
-</script>
 <script>
   let lastBalance = null;
 
