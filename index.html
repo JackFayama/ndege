@@ -114,15 +114,27 @@
 </div>
 
 <!-- Payment Instructions Modal -->
+<!-- Payment Instructions Modal (Professional Layout) -->
 <div id="paymentInstructionModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center">
-    <div class="bg-white text-black rounded-xl p-6 w-96 text-center">
-        <h2 class="text-xl font-bold mb-2" id="payTitle">Pay via</h2>
-        <p class="mb-2">Send money to Till Number <strong>1234</strong></p>
-        <input type="number" id="depositAmount" placeholder="Enter Amount" class="w-full border rounded p-2 mb-2"/>
-        <input type="text" id="mpesaCode" placeholder="Enter M-PESA Code" class="w-full border rounded p-2 mb-4"/>
-        <button onclick="confirmDeposit()" class="bg-blue-600 text-white px-4 py-2 rounded w-full">Confirm Deposit</button>
+  <div class="bg-white text-black rounded-xl p-6 w-[420px]">
+    <h2 class="text-xl font-bold mb-4 text-center" id="payTitle">Pay via</h2>
+    
+    <div class="flex items-center border border-gray-300 rounded-lg p-4 mb-4">
+      <img id="payImage" src="mpesa.png" alt="Payment Logo" class="w-16 h-16 object-contain mr-4" />
+      <div>
+        <p class="text-lg font-semibold" id="payMethodLabel">Go to M-PESA</p>
+        <p class="text-sm text-gray-600">Buy Goods and Services</p>
+        <p class="text-sm mt-1"><strong>Till Number:</strong> <span id="tillNumber">1234</span></p>
+      </div>
     </div>
+
+    <input type="number" id="depositAmount" placeholder="Enter Amount" class="w-full border rounded p-2 mb-2" />
+    <input type="text" id="mpesaCode" placeholder="Enter M-PESA Code" class="w-full border rounded p-2 mb-4" />
+    
+    <button onclick="confirmDeposit()" class="bg-blue-600 text-white px-4 py-2 rounded w-full font-semibold">Confirm Deposit</button>
+  </div>
 </div>
+
 
 <!-- Withdraw Modal -->
 <div id="withdrawModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center">
@@ -465,5 +477,26 @@ function closeAllModals() {
     document.getElementById("withdrawModal").classList.add("hidden");
 }
 </script>
+    <script>
+function showPaymentInstructions(method) {
+    document.getElementById('depositMethodModal').classList.add('hidden');
+    document.getElementById('paymentInstructionModal').classList.remove('hidden');
+    
+    const payTitle = document.getElementById('payTitle');
+    const payImage = document.getElementById('payImage');
+    const payLabel = document.getElementById('payMethodLabel');
+
+    if (method === 'M-PESA') {
+        payTitle.textContent = 'Pay via M-PESA';
+        payImage.src = 'mpesa.png';
+        payLabel.textContent = 'Go to M-PESA';
+    } else {
+        payTitle.textContent = 'Pay via Airtel Money';
+        payImage.src = 'airtel.png';
+        payLabel.textContent = 'Go to Airtel Money';
+    }
+}
+</script>
+
 </body>
 </html>
