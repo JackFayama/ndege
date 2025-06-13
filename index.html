@@ -320,6 +320,13 @@ if (isRunning) {
 } else {
     startGame();
 }
+
+    function setBetAmount(id, amount) {
+    const input = document.getElementById(id);
+    if (!input) return;
+    input.value = amount;
+    updateBetButtonLabel(id);
+} 
 </script>
 
 <!-- Modal Popup -->
