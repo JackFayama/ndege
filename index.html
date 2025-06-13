@@ -10,13 +10,6 @@
             background-color: #0f172a;
             color: white;
             font-family: sans-serif;
-
-             }
-
-        #modalPopup {
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
     </style>
 </head>
@@ -82,8 +75,8 @@
         </div>
     </div>
 
-    <!-- Modal -->
-    <div id="modalPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center z-50">
+    <!-- Modal (fixed and now works properly) -->
+    <div id="modalPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center">
         <div class="bg-white text-black rounded-xl p-6 w-80 text-center">
             <h2 id="modalTitle" class="text-xl font-bold mb-2">Notification</h2>
             <p id="modalMessage" class="mb-4">Message</p>
