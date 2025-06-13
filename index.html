@@ -89,8 +89,8 @@ let crashPoint = parseFloat(localStorage.getItem("crashPoint")) || (Math.random(
 let balance = parseFloat(localStorage.getItem("balance")) || 5000.00;
 
 let bets = JSON.parse(localStorage.getItem("bets")) || {
-    bet1: { active: false, placed: false, queued: false, amount: 0 },
-    bet2: { active: false, placed: false, queued: false, amount: 0 }
+    bet1: { active: false, placed: false, queued: false, amount: 0, auto: false },
+    bet2: { active: false, placed: false, queued: false, amount: 0, auto: false }
 };
 
 function saveState() {
@@ -145,7 +145,7 @@ function stopGame() {
             bets[id].active = false;
             setButtonToBet(id);
         }
-        if (bets[id].queued) {
+        if (bets[id].queued || bets[id].auto) {
             placeNextRound(id);
         }
     });
@@ -271,6 +271,7 @@ function restoreButtonStates() {
         } else {
             setButtonToBet(id);
         }
+        updateBetButtonLabel(id);
     });
 }
 
@@ -281,6 +282,15 @@ function updateBetButtonLabel(id) {
     if (!bets[id].active && !bets[id].placed) {
         btn.innerHTML = `Bet <span id="${id}Amount">${inputValue.toFixed(2)}</span> KES`;
     }
+}
+
+function toggleAutoBet(id) {
+    bets[id].auto = !bets[id].auto;
+    const autoBtn = document.querySelector(`#auto-${id}`);
+    autoBtn.classList.toggle("bg-red-500", bets[id].auto);
+    autoBtn.classList.toggle("bg-blue-500", !bets[id].auto);
+    autoBtn.innerText = bets[id].auto ? "Stop Auto" : "Auto";
+    saveState();
 }
 
 function showModal(message, title = "Notification") {
@@ -310,72 +320,6 @@ if (isRunning) {
 } else {
     startGame();
 }
-    <script>
-let autoBetStatus = {
-    bet1: false,
-    bet2: false
-};
-
-function toggleAuto(id) {
-    autoBetStatus[id] = !autoBetStatus[id];
-    const btn = document.querySelector(`#${id}`).parentElement.parentElement.querySelector("button:nth-child(2)");
-    btn.classList.toggle("bg-blue-500", autoBetStatus[id]);
-    btn.classList.toggle("bg-gray-700", !autoBetStatus[id]);
-    btn.textContent = autoBetStatus[id] ? "Auto: ON" : "Auto";
-
-    saveState();
-}
-
-function placeNextRound(id) {
-    const amount = bets[id].amount;
-
-    if (amount > balance) {
-        showModal("Low balance. Please top up.");
-        bets[id].queued = false;
-        return;
-    }
-
-    balance -= amount;
-    updateBalance();
-
-    bets[id].queued = false;
-    bets[id].placed = true;
-    bets[id].active = true;
-    setButtonToCashout(id);
-    saveState();
-}
-
-// Modified stopGame() to support auto-bet
-function stopGame() {
-    clearInterval(interval);
-    isRunning = false;
-    localStorage.setItem("isRunning", false);
-
-    Object.keys(bets).forEach(id => {
-        if (bets[id].active) {
-            bets[id].active = false;
-            setButtonToBet(id);
-        }
-
-        if (autoBetStatus[id]) {
-            // Auto bet if active
-            const amount = parseFloat(document.getElementById(id).value);
-            if (amount > 0 && amount <= balance) {
-                bets[id].amount = amount;
-                bets[id].queued = true;
-            }
-        } else if (bets[id].queued) {
-            placeNextRound(id);
-        }
-    });
-
-    saveState();
-
-    setTimeout(() => {
-        startGame();
-    }, 3000);
-}
-</script>
 </script>
 
 <!-- Modal Popup -->
