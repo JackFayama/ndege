@@ -538,74 +538,7 @@ function showPaymentInstructions(method) {
     }
 }
 </script>
- <script>
-function openWithdrawModal() {
-    document.getElementById('balanceModal').classList.add('hidden');
-    document.getElementById('withdrawMethodModal').classList.remove('hidden');
-}
 
-function showWithdrawInstructions(method) {
-    document.getElementById('withdrawMethodModal').classList.add('hidden');
-    document.getElementById('withdrawInstructionModal').classList.remove('hidden');
-
-    const methodLabel = method === 'M-PESA' ? 'To M-PESA' : 'To Airtel Money';
-    const logoSrc = method === 'M-PESA' ? 'mpesa.png' : 'visa.jpg';
-
-    document.getElementById('withdrawPayTitle').innerText = 'Withdraw via ' + method;
-    document.getElementById('withdrawPayMethodLabel').innerText = methodLabel;
-    document.getElementById('withdrawPayImage').src = logoSrc;
-}
-
-function confirmWithdraw() {
-    const amount = parseFloat(document.getElementById('withdrawAmount').value);
-    const code = document.getElementById('withdrawCode').value.trim();
-    let balance = parseFloat(localStorage.getItem("balance") || "0");
-
-    if (isNaN(amount) || amount <= 0) {
-        return showModal("Invalid Amount", "Please enter a valid amount to withdraw.");
-    }
-
-    if (!code) {
-        return showModal("Missing Code", "Please enter the security code sent to your email.");
-    }
-
-    if (code !== "1234") {
-        return showModal("Invalid Code", "The security code you entered is incorrect.");
-    }
-
-    if (amount > balance) {
-        return showModal("Insufficient Balance", "You do not have enough balance to withdraw that amount.");
-    }
-
-    // Proceed with withdrawal
-    balance -= amount;
-    localStorage.setItem("balance", balance.toFixed(2));
-    updateBalanceDisplay();
-
-    // Reset inputs
-    document.getElementById('withdrawAmount').value = "";
-    document.getElementById('withdrawCode').value = "";
-
-    // Hide withdraw modal and show success
-    document.getElementById('withdrawInstructionModal').classList.add('hidden');
-    showModal("Success", `You have successfully withdrawn KES ${amount.toFixed(2)}.`);
-}
-
-function updateBalanceDisplay() {
-    const balance = parseFloat(localStorage.getItem("balance") || "0");
-    document.getElementById("balance").innerText = `KES ${balance.toFixed(2)}`;
-}
-
-function showModal(title, message) {
-    document.getElementById("modalTitle").innerText = title;
-    document.getElementById("modalMessage").innerText = message;
-    document.getElementById("modalPopup").classList.remove("hidden");
-}
-
-function closeModal() {
-    document.getElementById("modalPopup").classList.add("hidden");
-}
-</script>
 
 </body>
 </html>
