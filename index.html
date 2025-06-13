@@ -96,12 +96,18 @@
     </div>
 </div>
 
-<!-- Deposit Method Modal -->
+<!-- Deposit Method Modal (Updated with Side-by-Side Images) -->
 <div id="depositMethodModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex justify-center items-center">
-    <div class="bg-white text-black rounded-xl p-6 w-80 text-center">
+    <div class="bg-white text-black rounded-xl p-6 w-96 text-center">
         <h2 class="text-xl font-bold mb-4">Choose Payment Method</h2>
-        <button onclick="showPaymentInstructions('M-PESA')" class="bg-green-600 text-white px-4 py-2 rounded mb-2 w-full">M-PESA</button>
-        <button onclick="showPaymentInstructions('Airtel Money')" class="bg-red-600 text-white px-4 py-2 rounded w-full">Airtel Money</button>
+        <div class="flex justify-between gap-4">
+            <button onclick="showPaymentInstructions('M-PESA')" class="flex-1 bg-white border-2 border-green-600 rounded-lg p-2">
+                <img src="mpesa.png" alt="M-PESA" class="w-full h-16 object-contain"/>
+            </button>
+            <button onclick="showPaymentInstructions('Airtel Money')" class="flex-1 bg-white border-2 border-red-600 rounded-lg p-2">
+                <img src="airtel.png" alt="Airtel Money" class="w-full h-16 object-contain"/>
+            </button>
+        </div>
     </div>
 </div>
 
