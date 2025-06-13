@@ -176,16 +176,73 @@
 </div>
 
 
-<!-- Generic Modal Popup -->
-<div id="modalPopup" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
-  <div class="bg-white text-black rounded-xl p-6 max-w-sm w-full shadow-xl">
-    <h2 id="modalTitle" class="text-xl font-bold mb-2">Title</h2>
-    <p id="modalMessage" class="mb-4">Message content will appear here.</p>
-    <button onclick="closeModal()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
-      Close
-    </button>
+<!-- Modal Popup -->
+<div id="modalPopup" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden">
+  <div class="bg-white text-black rounded-xl p-6 w-80 shadow-lg text-center">
+    <h2 id="modalTitle" class="text-xl font-bold mb-2">Notification</h2>
+    <p id="modalMessage" class="mb-4">This is a message.</p>
+    <button onclick="closeModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">OK</button>
   </div>
 </div>
+
+<script>
+function confirmWithdraw() {
+    const amount = parseFloat(document.getElementById('withdrawAmount').value);
+    const code = document.getElementById('withdrawCode').value.trim();
+    let balance = parseFloat(localStorage.getItem("balance") || "0");
+
+    if (isNaN(amount) || amount <= 0) {
+        showModal("Invalid Amount", "Please enter a valid amount to withdraw.");
+        return;
+    }
+
+    if (!code) {
+        showModal("Missing Code", "Please enter the security code sent to your email.");
+        return;
+    }
+
+    if (code !== "1234") {
+        showModal("Invalid Code", "The security code you entered is incorrect.");
+        return;
+    }
+
+    if (amount > balance) {
+        showModal("Insufficient Balance", "You do not have enough balance to withdraw that amount.");
+        return;
+    }
+
+    // Proceed with withdrawal
+    balance -= amount;
+    localStorage.setItem("balance", balance.toFixed(2));
+    updateBalanceDisplay();
+
+    // Reset inputs
+    document.getElementById('withdrawAmount').value = "";
+    document.getElementById('withdrawCode').value = "";
+
+    // Hide withdraw modal and show success
+    document.getElementById('withdrawInstructionModal').classList.add('hidden');
+    showModal("Withdraw Successful", `You have successfully withdrawn KES ${amount.toFixed(2)}.`);
+}
+
+function updateBalanceDisplay() {
+    const balance = parseFloat(localStorage.getItem("balance") || "0");
+    const displayEl = document.querySelector(".text-green-400");
+    if (displayEl) {
+        displayEl.innerText = `${balance.toFixed(2)} KES`;
+    }
+}
+
+function showModal(title, message) {
+    document.getElementById("modalTitle").innerText = title;
+    document.getElementById("modalMessage").innerText = message;
+    document.getElementById("modalPopup").classList.remove("hidden");
+}
+
+function closeModal() {
+    document.getElementById("modalPopup").classList.add("hidden");
+}
+</script>
 
 
     <!-- SCRIPT -->
