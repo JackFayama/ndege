@@ -320,13 +320,31 @@ if (isRunning) {
 } else {
     startGame();
 }
-
-    function setBetAmount(id, amount) {
+<script>
+// Set exact bet amount from quick buttons
+function setBet(id, amount) {
     const input = document.getElementById(id);
-    if (!input) return;
-    input.value = amount;
+    input.value = amount.toFixed(2);
     updateBetButtonLabel(id);
-} 
+}
+
+// Increase/decrease using + and -
+function increaseBet(id) {
+    const input = document.getElementById(id);
+    let current = parseFloat(input.value) || 0;
+    current += 10;
+    input.value = current.toFixed(2);
+    updateBetButtonLabel(id);
+}
+
+function decreaseBet(id) {
+    const input = document.getElementById(id);
+    let current = parseFloat(input.value) || 0;
+    current = Math.max(current - 10, 0);
+    input.value = current.toFixed(2);
+    updateBetButtonLabel(id);
+}
+  
 </script>
 
 <!-- Modal Popup -->
