@@ -158,13 +158,16 @@
     <input class="search-input" type="text" placeholder="Search All Symbols" />
     ⚙️
   </div>
-
-  <div class="tab-menu">
-    <div class="active">Forex</div>
-    <div>Commodities</div>
-    <div>Indices</div>
-    <div>Stocks</div>
-  </div>
+  
+   <!-- Search and Tabs -->
+    <div class="p-4 bg-white">
+      <input id="searchInput" type="text" placeholder="Search All Symbols" class="w-full px-4 py-2 rounded bg-gray-100 border border-gray-300" oninput="filterSymbols()" />
+      <div class="flex space-x-4 mt-4 overflow-x-auto">
+        <button onclick="loadPage('forex')" id="tab-forex" class="text-red-600 font-semibold border-b-2 border-red-600">Forex</button>
+        <button onclick="loadPage('commodities')" id="tab-commodities" class="text-gray-600">Commodities</button>
+        <button onclick="loadPage('indices')" id="tab-indices" class="text-gray-600">Indices</button>
+        <button onclick="loadPage('stocks')" id="tab-stocks" class="text-gray-600">Stocks</button>
+      </div>
 
   <div class="currency-filter">
     <div>🇺🇸 USD</div>
@@ -231,5 +234,41 @@
     <div>📰<br>News</div>
     <div>⋯<br>More</div>
   </div>
+
+     <script>
+  // Handle Search Input
+  function filterSymbols() {
+    const input = document.getElementById("searchInput").value.toLowerCase();
+    document.querySelectorAll("#marketList > div").forEach(card => {
+      const text = card.innerText.toLowerCase();
+      card.style.display = text.includes(input) ? "block" : "none";
+    });
+  }
+
+  // Load tab page dynamically and highlight tab
+  function loadPage(page) {
+    const tabs = ["forex", "commodities", "indices", "stocks"];
+    tabs.forEach(id => {
+      const tab = document.getElementById("tab-" + id);
+      tab.classList.remove("text-red-600", "font-semibold", "border-b-2", "border-red-600");
+      tab.classList.add("text-gray-600");
+    });
+
+    const activeTab = document.getElementById("tab-" + page);
+    activeTab.classList.remove("text-gray-600");
+    activeTab.classList.add("text-red-600", "font-semibold", "border-b-2", "border-red-600");
+
+    fetch(page + ".html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("contentArea").innerHTML = html;
+      })
+      .catch(err => {
+        document.getElementById("contentArea").innerHTML = "<div class='text-center text-red-600 p-4'>Failed to load content.</div>";
+        console.error(err);
+      });
+  }
+</script>
+ 
 </body>
 </html>
