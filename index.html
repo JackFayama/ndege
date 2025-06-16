@@ -232,37 +232,37 @@
     <div>⋯<br>More</div>
   </div>
 
-  <script>
-const API_KEY = "7MTUM85YO93SSKLG";
-const pairs = ["EURUSD", "GBPUSD", "USDJPY", "USDCAD"];
+ <script>
+  const pairs = ["EUR/USD", "GBP/USD", "USD/JPY", "USD/CAD"];
+  const interval = 2000; // 2 seconds
+  const apiKey = "d5a3e140dfec46a4ad068633491d9a0d";
 
-async function updatePair(pair) {
-  const from = pair.slice(0, 3);
-  const to = pair.slice(3);
-  const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${from}&to_currency=${to}&apikey=${API_KEY}`;
-
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-    const rate = data["Realtime Currency Exchange Rate"];
-    if (rate) {
-      const bid = parseFloat(rate["8. Bid Price"]).toFixed(5);
-      const ask = parseFloat(rate["9. Ask Price"]).toFixed(5);
-      document.getElementById(`sell-${pair}`).textContent = `${bid} Sell`;
-      document.getElementById(`buy-${pair}`).textContent = `Buy ${ask}`;
+  async function fetchPrice(symbol) {
+    try {
+      const response = await fetch(`https://api.twelvedata.com/price?symbol=${symbol}&apikey=${apiKey}`);
+      const data = await response.json();
+      if (data && data.price) {
+        const formatted = parseFloat(data.price).toFixed(5);
+        const id = symbol.replace("/", "");
+        document.getElementById(`buy-${id}`).innerText = `Buy ${formatted}`;
+        document.getElementById(`sell-${id}`).innerText = `Sell ${formatted}`;
+      } else {
+        console.error("API Error:", data);
+      }
+    } catch (err) {
+      console.error("Fetch error:", err);
     }
-  } catch (error) {
-    console.error(`Failed to fetch ${pair}:`, error);
   }
-}
 
-function refreshAllPairs() {
-  pairs.forEach(updatePair);
-}
+  function updatePrices() {
+    pairs.forEach(pair => fetchPrice(pair));
+  }
 
-refreshAllPairs();
-setInterval(refreshAllPairs, 30000); // Update every 30s to avoid API rate limit
+  // Initial fetch and interval
+  updatePrices();
+  setInterval(updatePrices, interval);
 </script>
+
 
 </body>
 </html>
