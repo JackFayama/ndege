@@ -182,9 +182,9 @@
     </div>
     <div class="chart-placeholder"></div>
     <div class="market-actions">
-      <div class="sell">1.1572⁴ Sell</div>
-      <div class="buy">Buy 1.1574³</div>
-    </div>
+  <div class="sell" id="sell-EURUSD">Loading...</div>
+  <div class="buy" id="buy-EURUSD">Loading...</div>
+</div>
   </div>
 
   <div class="market-card">
@@ -231,5 +231,38 @@
     <div>📰<br>News</div>
     <div>⋯<br>More</div>
   </div>
+  <script>
+// Forex Symbols to Track
+const pairs = [
+  { symbol: "EURUSD", tvSymbol: "FX:EURUSD" },
+  { symbol: "GBPUSD", tvSymbol: "FX:GBPUSD" },
+  { symbol: "USDJPY", tvSymbol: "FX:USDJPY" },
+  { symbol: "USDCAD", tvSymbol: "FX:USDCAD" }
+];
+
+// Load TradingView price widget as a hidden iframe
+function createTVFrame(tvSymbol, symbol) {
+  const iframe = document.createElement("iframe");
+  iframe.style.display = "none";
+  iframe.src = `https://s.tradingview.com/embed-widget/mini-symbol-overview/?symbol=${tvSymbol}&locale=en`;
+  document.body.appendChild(iframe);
+
+  const buyEl = document.getElementById(`buy-${symbol}`);
+  const sellEl = document.getElementById(`sell-${symbol}`);
+
+  // Fallback: Use randomizer to simulate (TradingView widgets don't expose JS API directly)
+  setInterval(() => {
+    const price = (Math.random() * (2 - 1) + 1).toFixed(4);
+    buyEl.textContent = `Buy ${parseFloat(price) + 0.0002}`;
+    sellEl.textContent = `${price} Sell`;
+  }, 2000); // Every 2 seconds
+}
+
+// Initialize all symbols
+pairs.forEach(({ symbol, tvSymbol }) => {
+  createTVFrame(tvSymbol, symbol);
+});
+</script>
+
 </body>
 </html>
