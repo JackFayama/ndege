@@ -119,6 +119,25 @@
       height: 24px;
       margin-bottom: 4px;
     }
+    
+    body 
+  {
+  font-family: Arial, sans-serif;
+  background: #f0f0f0;
+  margin: 0;
+  padding-top: 180px; /* space for fixed header */
+  padding-bottom: 80px; /* for bottom nav */
+}
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: #f0f0f0; /* match page background */
+  /* box-shadow: none; */ /* remove any visual separation */
+}
   </style>
 </head>
 <body>
@@ -137,20 +156,6 @@
     </div>
   </div>
   
-  <!-- Top Logo -->
-  <div class="logo-container">
-    <div class="logo">NovaFX</div>
-  </div>
-
-  <!-- Balance Card -->
-  <div class="balance-card">
-    <div class="title">Total</div>
-    <div class="amount">$5,000.00</div>
-    <div class="details">Margin: $1,200</div>
-    <div class="details">Equity: $5,100</div>
-    <div class="details">Free Funds: $3,900</div>
-  </div>
-
 <div class="market-card">
   <div class="market-header">
     <span>EURUSD</span>
