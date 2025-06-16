@@ -171,59 +171,55 @@
     <div>🇬🇧 GBP</div>
     <div>🇪🇺 EUR</div>
     <div>🇯🇵 JPY</div>
-    <div>🇨🇦</div>
+    <div>🇨🇦 CAD</div>
   </div>
 
-  <!-- Cards -->
+  <!-- Cards for each currency pair -->
   <div class="market-card">
-  <div class="market-header">
-    <span>EURUSD.Z ⭐</span>
-    <span id="change-EURUSD" style="color: var(--buy);">↑ 0.00%</span>
-  </div>
-  <div class="chart-placeholder"></div>
-  <div class="market-actions">
-    <div class="sell" id="sell-EURUSD">Loading...</div>
-    <div class="buy" id="buy-EURUSD">Loading...</div>
-  </div>
-</div>
-
-<!-- Repeat for GBPUSD, USDJPY, USDCAD -->
-
+    <div class="market-header">
+      <span>EURUSD.Z ⭐</span>
+      <span id="change-EURUSD">↓ 0.00%</span>
+    </div>
+    <div class="chart-placeholder"></div>
+    <div class="market-actions">
+      <div class="sell" id="sell-EURUSD">Loading...</div>
+      <div class="buy" id="buy-EURUSD">Loading...</div>
+    </div>
   </div>
 
   <div class="market-card">
     <div class="market-header">
       <span>GBPUSD.Z ⭐</span>
-      <span style="color: var(--buy);">↑ 0.25%</span>
+      <span id="change-GBPUSD">↓ 0.00%</span>
     </div>
     <div class="chart-placeholder"></div>
     <div class="market-actions">
-      <div class="sell">1.3587³ Sell</div>
-      <div class="buy">Buy 1.3589⁴</div>
+      <div class="sell" id="sell-GBPUSD">Loading...</div>
+      <div class="buy" id="buy-GBPUSD">Loading...</div>
     </div>
   </div>
 
   <div class="market-card">
     <div class="market-header">
       <span>USDJPY.Z ⭐</span>
-      <span style="color: var(--buy);">↑ 0.16%</span>
+      <span id="change-USDJPY">↓ 0.00%</span>
     </div>
     <div class="chart-placeholder"></div>
     <div class="market-actions">
-      <div class="sell">144.22⁶ Sell</div>
-      <div class="buy">Buy 144.25⁰</div>
+      <div class="sell" id="sell-USDJPY">Loading...</div>
+      <div class="buy" id="buy-USDJPY">Loading...</div>
     </div>
   </div>
 
   <div class="market-card">
     <div class="market-header">
       <span>USDCAD.Z ⭐</span>
-      <span style="color: var(--sell);">↓ -0.05%</span>
+      <span id="change-USDCAD">↓ 0.00%</span>
     </div>
     <div class="chart-placeholder"></div>
     <div class="market-actions">
-      <div class="sell">1.3578⁷ Sell</div>
-      <div class="buy">Buy 1.3581⁵</div>
+      <div class="sell" id="sell-USDCAD">Loading...</div>
+      <div class="buy" id="buy-USDCAD">Loading...</div>
     </div>
   </div>
 
@@ -236,57 +232,59 @@
     <div>⋯<br>More</div>
   </div>
 
-<script>
-  const socket = new WebSocket("wss://ws.finnhub.io?token=d17ug69r01qteuvq4ga0d17ug69r01qteuvq4gag");
+  <!-- Live Price Script using WebSocket -->
+  <script>
+    const socket = new WebSocket("wss://ws.finnhub.io?token=d17ug69r01qteuvq4ga0d17ug69r01qteuvq4gag");
 
-  const symbols = {
-    "EURUSD": "OANDA:EUR_USD",
-    "GBPUSD": "OANDA:GBP_USD",
-    "USDJPY": "OANDA:USD_JPY",
-    "USDCAD": "OANDA:USD_CAD"
-  };
+    const symbols = {
+      "EURUSD": "OANDA:EUR_USD",
+      "GBPUSD": "OANDA:GBP_USD",
+      "USDJPY": "OANDA:USD_JPY",
+      "USDCAD": "OANDA:USD_CAD"
+    };
 
-  const prices = {};
+    const prices = {};
 
-  socket.addEventListener("open", () => {
-    for (let key in symbols) {
-      socket.send(JSON.stringify({ type: "subscribe", symbol: symbols[key] }));
-    }
-  });
+    socket.addEventListener("open", () => {
+      for (let key in symbols) {
+        socket.send(JSON.stringify({ type: "subscribe", symbol: symbols[key] }));
+      }
+    });
 
-  socket.addEventListener("message", event => {
-    const data = JSON.parse(event.data);
-    if (data.type === "trade") {
-      data.data.forEach(trade => {
-        const [prefix, base, quote] = trade.s.split(":")[1].split("_");
-        const id = base + quote;
-        const price = parseFloat(trade.p).toFixed(5);
+    socket.addEventListener("message", event => {
+      const data = JSON.parse(event.data);
+      if (data.type === "trade") {
+        data.data.forEach(trade => {
+          const [provider, base, quote] = trade.s.split(":")[1].split("_");
+          const id = base + quote;
+          const price = parseFloat(trade.p).toFixed(5);
 
-        prices[id] = prices[id] || { last: price };
-        const change = (price - prices[id].last).toFixed(5);
-        prices[id].last = price;
+          if (!prices[id]) prices[id] = { last: price };
 
-        const sellEl = document.getElementById(`sell-${id}`);
-        const buyEl = document.getElementById(`buy-${id}`);
-        const changeEl = document.getElementById(`change-${id}`);
+          const prev = parseFloat(prices[id].last);
+          const change = price - prev;
+          prices[id].last = price;
 
-        if (sellEl) sellEl.textContent = `${(price - 0.0002).toFixed(5)} Sell`;
-        if (buyEl) buyEl.textContent = `Buy ${(price).toFixed(5)}`;
+          const sellEl = document.getElementById(`sell-${id}`);
+          const buyEl = document.getElementById(`buy-${id}`);
+          const changeEl = document.getElementById(`change-${id}`);
 
-        if (changeEl) {
-          const perc = ((change / price) * 100).toFixed(2);
-          changeEl.textContent = `${change >= 0 ? "↑" : "↓"} ${Math.abs(perc)}%`;
-          changeEl.style.color = change >= 0 ? "green" : "red";
-        }
-      });
-    }
-  });
+          if (sellEl) sellEl.textContent = `${(price - 0.0002).toFixed(5)} Sell`;
+          if (buyEl) buyEl.textContent = `Buy ${price}`;
 
-  socket.addEventListener("close", () => {
-    console.warn("WebSocket closed. Trying to reconnect in 5 seconds...");
-    setTimeout(() => location.reload(), 5000);
-  });
-</script>
+          if (changeEl) {
+            const perc = ((change / prev) * 100).toFixed(2);
+            changeEl.textContent = `${change >= 0 ? "↑" : "↓"} ${Math.abs(perc)}%`;
+            changeEl.style.color = change >= 0 ? "green" : "red";
+          }
+        });
+      }
+    });
 
+    socket.addEventListener("close", () => {
+      console.warn("WebSocket closed. Trying to reconnect in 5 seconds...");
+      setTimeout(() => location.reload(), 5000);
+    });
+  </script>
 </body>
 </html>
