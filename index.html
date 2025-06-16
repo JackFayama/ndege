@@ -3,13 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Live Forex Market - NovaFX</title>
+  <title>NovaFX - Live Forex Market</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #f0f0f0;
       margin: 0;
-      padding-bottom: 80px;
+      padding-top: 140px; /* space for fixed top */
+      padding-bottom: 80px; /* space for bottom nav */
+    }
+
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      z-index: 50;
     }
 
     .logo-container {
@@ -26,9 +36,8 @@
       background: #16a34a;
       color: white;
       border-radius: 16px;
-      margin: 0 16px;
+      margin: 0 16px 12px;
       padding: 16px;
-      position: relative;
     }
 
     .balance-card .title {
@@ -77,41 +86,41 @@
     .bottom-nav {
       position: fixed;
       bottom: 0;
-      width: 100%;
+      left: 0;
+      right: 0;
+      background: #fff;
       display: flex;
       justify-content: space-around;
-      padding: 12px 0;
-      background: #fff;
-      border-top-left-radius: 20px;
-      border-top-right-radius: 20px;
-      box-shadow: 0 -1px 5px rgba(0,0,0,0.1);
+      padding: 10px 0;
+      border-top: 1px solid #ccc;
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
       z-index: 50;
     }
 
-    .nav-item {
-      text-align: center;
+    .bottom-nav button {
+      background: none;
+      border: none;
+      outline: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       font-size: 12px;
-      color: black;
+      color: #000;
     }
 
-    .nav-item svg {
+    .bottom-nav button.active {
+      color: #4ade80; /* green-400 */
+    }
+
+    .bottom-nav svg {
       width: 24px;
       height: 24px;
-      margin: 0 auto 4px;
-      stroke: #2563eb;
-      transition: stroke 0.3s;
-    }
-
-    .nav-item.active span {
-      color: #4ade80;
-    }
-
-    .nav-item.active svg {
-      stroke: #4ade80;
+      margin-bottom: 4px;
     }
   </style>
 </head>
-<body>
+<body
 
   <!-- Top Logo -->
   <div class="logo-container">
@@ -237,25 +246,26 @@
   </div>
 </div>
 
-   <!-- Bottom Navigation Bar -->
-  <div class="bottom-nav" id="bottomNav">
-    <div class="nav-item active" onclick="setActiveTab(this)">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/></svg>
+   <!-- Fixed Bottom Navigation -->
+  <div class="bottom-nav">
+    <button onclick="setActive(this)">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/></svg>
       <span>Home</span>
-    </div>
-    <div class="nav-item" onclick="setActiveTab(this)">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 17l-4 4-4-4"/><path d="M12 12v9"/><path d="M8 7l4-4 4 4"/><path d="M12 2v9"/></svg>
+    </button>
+    <button onclick="setActive(this)">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 17l-4 4-4-4"/><path d="M12 12v9"/><path d="M8 7l4-4 4 4"/><path d="M12 2v9"/></svg>
       <span>Trades</span>
-    </div>
-    <div class="nav-item" onclick="setActiveTab(this)">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h0M2 9.5h20"/></svg>
+    </button>
+    <button onclick="setActive(this)">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h0M2 9.5h20"/></svg>
       <span>Wallet</span>
-    </div>
-    <div class="nav-item" onclick="setActiveTab(this)">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/><circle cx="12" cy="12" r="10"/></svg>
+    </button>
+    <button onclick="setActive(this)">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="10" r="3"/><path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/><circle cx="12" cy="12" r="10"/></svg>
       <span>User</span>
-    </div>
+    </button>
   </div>
+
   
   <!-- 📈 Live WebSocket Prices -->
   <script>
