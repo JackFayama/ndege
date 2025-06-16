@@ -238,50 +238,41 @@
 
 <script>
   const pairs = ["EURUSD", "GBPUSD", "USDJPY", "USDCAD"];
-  const apiKey = "d5a3e140dfec46a4ad068633491d9a0d"; // your API key
+  const apiKey = "d5a3e140dfec46a4ad068633491d9a0d"; // your valid key
 
   function fetchQuote(pair) {
-    const url = `https://api.twelvedata.com/quote?symbol=${pair}&apikey=${apiKey}`;
-
-    fetch(url)
+    fetch(`https://api.twelvedata.com/quote?symbol=${pair}&apikey=${apiKey}`)
       .then(res => res.json())
       .then(data => {
-        const sellId = `sell-${pair}`;
-        const buyId = `buy-${pair}`;
-        const changeId = `change-${pair}`;
+        const price = parseFloat(data.price).toFixed(5);
+        const change = parseFloat(data.percent_change).toFixed(2);
 
-        const sellEl = document.getElementById(sellId);
-        const buyEl = document.getElementById(buyId);
-        const changeEl = document.getElementById(changeId);
-
-        if (data && data.bid && data.ask && data.percent_change) {
-          const bid = parseFloat(data.bid).toFixed(5);
-          const ask = parseFloat(data.ask).toFixed(5);
-          const change = parseFloat(data.percent_change).toFixed(2);
-
-          if (sellEl) sellEl.textContent = `${bid} Sell`;
-          if (buyEl) buyEl.textContent = `Buy ${ask}`;
+        if (!isNaN(price)) {
+          document.getElementById(`sell-${pair}`).textContent = `${price} Sell`;
+          document.getElementById(`buy-${pair}`).textContent = `Buy ${price}`;
+          const changeEl = document.getElementById(`change-${pair}`);
           if (changeEl) {
-            changeEl.textContent = `${change > 0 ? "↑" : "↓"} ${change}%`;
+            changeEl.textContent = `${change >= 0 ? "↑" : "↓"} ${change}%`;
             changeEl.style.color = change >= 0 ? "var(--buy)" : "var(--sell)";
           }
         } else {
-          if (sellEl) sellEl.textContent = `Sell: N/A`;
-          if (buyEl) buyEl.textContent = `Buy: N/A`;
-          if (changeEl) changeEl.textContent = `0.00%`;
+          document.getElementById(`sell-${pair}`).textContent = `Sell: N/A`;
+          document.getElementById(`buy-${pair}`).textContent = `Buy: N/A`;
         }
       })
       .catch(err => {
-        console.error(`Error fetching ${pair}:`, err);
+        console.error("API Error for", pair, err);
+        document.getElementById(`sell-${pair}`).textContent = `Sell: N/A`;
+        document.getElementById(`buy-${pair}`).textContent = `Buy: N/A`;
       });
   }
 
-  function updateQuotes() {
-    pairs.forEach(pair => fetchQuote(pair));
+  function updateAll() {
+    pairs.forEach(fetchQuote);
   }
 
-  updateQuotes(); // initial load
-  setInterval(updateQuotes, 1000); // every second
+  updateAll(); // load once
+  setInterval(updateAll, 1000); // update every second
 </script>
 
 </body>
