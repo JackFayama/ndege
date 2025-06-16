@@ -3,184 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HFM Market Replica</title>
+  <title>Live Forex Market</title>
   <style>
-    :root {
-      --primary: #e30000;
-      --buy: #28a745;
-      --sell: #dc3545;
-      --bg: #f9f9f9;
-      --card-bg: #fff;
-      --gray: #ccc;
-      --font-family: 'Inter', sans-serif;
-    }
-
-    body {
-      margin: 0;
-      font-family: var(--font-family);
-      background-color: var(--bg);
-      color: #000;
-    }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px;
-      background-color: #fff;
-    }
-
-    .hfm-logo {
-      font-weight: 700;
-      font-size: 18px;
-    }
-
-    .balance-container {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-    }
-
-    .demo-badge {
-      background: #007bff;
-      color: #fff;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 12px;
-    }
-
-    .search-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      background: #fff;
-    }
-
-    .search-input {
-      background: #f0f0f0;
-      border-radius: 8px;
-      padding: 10px;
-      flex: 1;
-      margin-right: 10px;
-    }
-
-    .tab-menu, .currency-filter {
-      display: flex;
-      gap: 12px;
-      padding: 12px 16px;
-      background: #fff;
-      overflow-x: auto;
-    }
-
-    .tab-menu div {
-      padding-bottom: 4px;
-    }
-
-    .tab-menu .active {
-      border-bottom: 2px solid var(--primary);
-      font-weight: 600;
-    }
-
+    body { font-family: Arial, sans-serif; background: #f0f0f0; margin: 0; padding-bottom: 80px; }
     .market-card {
-      background: var(--card-bg);
-      margin: 12px 16px;
+      background: #fff;
+      margin: 12px;
       padding: 16px;
-      border-radius: 12px;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     }
-
     .market-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      font-weight: 600;
+      font-weight: bold;
+      margin-bottom: 10px;
     }
-
-    .chart-placeholder {
-      height: 40px;
-      background: #e0e0e0;
-      border-radius: 6px;
-      margin-bottom: 12px;
-    }
-
     .market-actions {
       display: flex;
       justify-content: space-between;
-      align-items: center;
     }
-
-    .buy {
-      color: var(--buy);
-      font-weight: 600;
-    }
-
-    .sell {
-      color: var(--sell);
-      font-weight: 600;
-    }
-
-    .bottom-nav {
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
-      background: #fff;
-      position: fixed;
-      width: 100%;
-      bottom: 0;
-      border-top: 1px solid #e0e0e0;
-    }
-
-    .bottom-nav div {
-      font-size: 12px;
-      text-align: center;
-    }
-
-    .bottom-nav .active {
-      color: var(--primary);
-      font-weight: 600;
-    }
+    .sell { color: red; }
+    .buy { color: green; }
   </style>
 </head>
 <body>
-  <div class="topbar">
-    <div class="hfm-logo">HFM</div>
-    <div class="balance-container">
-      <span class="demo-badge">Demo</span>
-      <span>KSh10,000,000.00</span>
-    </div>
-    <div>🔔</div>
-  </div>
 
-  <div class="search-bar">
-    <input class="search-input" type="text" placeholder="Search All Symbols" />
-    ⚙️
-  </div>
-
-  <div class="tab-menu">
-    <div class="active">Forex</div>
-    <div>Commodities</div>
-    <div>Indices</div>
-    <div>Stocks</div>
-  </div>
-
-  <div class="currency-filter">
-    <div>🇺🇸 USD</div>
-    <div>🇬🇧 GBP</div>
-    <div>🇪🇺 EUR</div>
-    <div>🇯🇵 JPY</div>
-    <div>🇨🇦 CAD</div>
-  </div>
-
-  <!-- Cards for each currency pair -->
   <div class="market-card">
     <div class="market-header">
-      <span>EURUSD.Z ⭐</span>
-      <span id="change-EURUSD">↓ 0.00%</span>
+      <span>EURUSD ⭐</span>
+      <span id="change-EURUSD">Loading...</span>
     </div>
-    <div class="chart-placeholder"></div>
     <div class="market-actions">
       <div class="sell" id="sell-EURUSD">Loading...</div>
       <div class="buy" id="buy-EURUSD">Loading...</div>
@@ -189,10 +42,9 @@
 
   <div class="market-card">
     <div class="market-header">
-      <span>GBPUSD.Z ⭐</span>
-      <span id="change-GBPUSD">↓ 0.00%</span>
+      <span>GBPUSD ⭐</span>
+      <span id="change-GBPUSD">Loading...</span>
     </div>
-    <div class="chart-placeholder"></div>
     <div class="market-actions">
       <div class="sell" id="sell-GBPUSD">Loading...</div>
       <div class="buy" id="buy-GBPUSD">Loading...</div>
@@ -201,10 +53,9 @@
 
   <div class="market-card">
     <div class="market-header">
-      <span>USDJPY.Z ⭐</span>
-      <span id="change-USDJPY">↓ 0.00%</span>
+      <span>USDJPY ⭐</span>
+      <span id="change-USDJPY">Loading...</span>
     </div>
-    <div class="chart-placeholder"></div>
     <div class="market-actions">
       <div class="sell" id="sell-USDJPY">Loading...</div>
       <div class="buy" id="buy-USDJPY">Loading...</div>
@@ -213,26 +64,15 @@
 
   <div class="market-card">
     <div class="market-header">
-      <span>USDCAD.Z ⭐</span>
-      <span id="change-USDCAD">↓ 0.00%</span>
+      <span>USDCAD ⭐</span>
+      <span id="change-USDCAD">Loading...</span>
     </div>
-    <div class="chart-placeholder"></div>
     <div class="market-actions">
       <div class="sell" id="sell-USDCAD">Loading...</div>
       <div class="buy" id="buy-USDCAD">Loading...</div>
     </div>
   </div>
 
-  <!-- Bottom Navigation -->
-  <div class="bottom-nav">
-    <div>☰<br>Menu</div>
-    <div>⬆️<br>Trades</div>
-    <div class="active">📊<br>Markets</div>
-    <div>📰<br>News</div>
-    <div>⋯<br>More</div>
-  </div>
-
-  <!-- Live Price Script using WebSocket -->
   <script>
     const socket = new WebSocket("wss://ws.finnhub.io?token=d17ug69r01qteuvq4ga0d17ug69r01qteuvq4gag");
 
@@ -255,14 +95,15 @@
       const data = JSON.parse(event.data);
       if (data.type === "trade") {
         data.data.forEach(trade => {
-          const [provider, base, quote] = trade.s.split(":")[1].split("_");
-          const id = base + quote;
+          const full = trade.s.replace("OANDA:", ""); // EUR_USD
+          const id = full.replace("_", "");            // EURUSD
           const price = parseFloat(trade.p).toFixed(5);
 
           if (!prices[id]) prices[id] = { last: price };
 
-          const prev = parseFloat(prices[id].last);
-          const change = price - prev;
+          const change = price - prices[id].last;
+          const percentChange = ((change / prices[id].last) * 100).toFixed(2);
+
           prices[id].last = price;
 
           const sellEl = document.getElementById(`sell-${id}`);
@@ -271,10 +112,8 @@
 
           if (sellEl) sellEl.textContent = `${(price - 0.0002).toFixed(5)} Sell`;
           if (buyEl) buyEl.textContent = `Buy ${price}`;
-
           if (changeEl) {
-            const perc = ((change / prev) * 100).toFixed(2);
-            changeEl.textContent = `${change >= 0 ? "↑" : "↓"} ${Math.abs(perc)}%`;
+            changeEl.textContent = `${change >= 0 ? "↑" : "↓"} ${Math.abs(percentChange)}%`;
             changeEl.style.color = change >= 0 ? "green" : "red";
           }
         });
@@ -282,9 +121,10 @@
     });
 
     socket.addEventListener("close", () => {
-      console.warn("WebSocket closed. Trying to reconnect in 5 seconds...");
+      console.warn("WebSocket closed. Reconnecting in 5 seconds...");
       setTimeout(() => location.reload(), 5000);
     });
   </script>
+
 </body>
 </html>
