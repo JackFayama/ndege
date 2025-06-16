@@ -47,28 +47,28 @@
     </button>
   </div>
 
-  <!-- WebSocket Prices -->
+  <!-- 📈 Live WebSocket Prices -->
   <script>
-    const symbols = {
-      "EURUSD": "OANDA:EUR_USD",
-      "GBPUSD": "OANDA:GBP_USD",
-      "USDJPY": "OANDA:USD_JPY",
-      "USDCHF": "OANDA:USD_CHF",
-      "USDCAD": "OANDA:USD_CAD",
-      "AUDUSD": "OANDA:AUD_USD",
-      "NZDUSD": "OANDA:NZD_USD",
-      "EURJPY": "OANDA:EUR_JPY",
-      "GBPJPY": "OANDA:GBP_JPY",
-      "XAUUSD": "OANDA:XAU_USD"
-    };
-
     const socket = new WebSocket("wss://ws.finnhub.io?token=d17ug69r01qteuvq4ga0d17ug69r01qteuvq4gag");
+
+   const symbols = {
+  "EURUSD": "OANDA:EUR_USD",
+  "GBPUSD": "OANDA:GBP_USD",
+  "USDJPY": "OANDA:USD_JPY",
+  "USDCHF": "OANDA:USD_CHF",
+  "USDCAD": "OANDA:USD_CAD",
+  "AUDUSD": "OANDA:AUD_USD",
+  "NZDUSD": "OANDA:NZD_USD",
+  "EURJPY": "OANDA:EUR_JPY",
+  "GBPJPY": "OANDA:GBP_JPY",
+  "XAUUSD": "OANDA:XAU_USD"  // Gold against USD
+};
+
     const prices = {};
 
     socket.addEventListener("open", () => {
       for (let key in symbols) {
         socket.send(JSON.stringify({ type: "subscribe", symbol: symbols[key] }));
-        createMarketCard(key);
       }
     });
 
@@ -81,8 +81,10 @@
           const price = parseFloat(trade.p).toFixed(5);
 
           if (!prices[id]) prices[id] = { last: price };
+
           const change = price - prices[id].last;
-          const percent = ((change / prices[id].last) * 100).toFixed(2);
+          const percentChange = ((change / prices[id].last) * 100).toFixed(2);
+
           prices[id].last = price;
 
           const sellEl = document.getElementById(`sell-${id}`);
@@ -92,39 +94,18 @@
           if (sellEl) sellEl.textContent = `${(price - 0.0002).toFixed(5)} Sell`;
           if (buyEl) buyEl.textContent = `Buy ${price}`;
           if (changeEl) {
-            changeEl.textContent = `${change >= 0 ? "↑" : "↓"} ${Math.abs(percent)}%`;
-            changeEl.className = `font-bold ${change >= 0 ? 'text-green-600' : 'text-red-600'}`;
+            changeEl.textContent = `${change >= 0 ? "↑" : "↓"} ${Math.abs(percentChange)}%`;
+            changeEl.style.color = change >= 0 ? "green" : "red";
           }
         });
       }
     });
 
     socket.addEventListener("close", () => {
-      console.warn("WebSocket closed. Reconnecting...");
+      console.warn("WebSocket closed. Reconnecting in 5 seconds...");
       setTimeout(() => location.reload(), 5000);
     });
-
-    function createMarketCard(id) {
-      const container = document.getElementById("markets");
-      const card = document.createElement("div");
-      card.className = "bg-white rounded-xl shadow p-4 mx-4 mb-4";
-      card.innerHTML = `
-        <div class="flex justify-between font-semibold mb-2">
-          <span>${id}</span>
-          <span id="change-${id}">Loading...</span>
-        </div>
-        <div class="flex justify-between">
-          <div class="text-red-600" id="sell-${id}">Loading...</div>
-          <div class="text-green-600" id="buy-${id}">Loading...</div>
-        </div>
-      `;
-      container.appendChild(card);
-    }
-
-    function setActive(el) {
-      document.querySelectorAll(".bottom-nav button").forEach(btn => btn.classList.remove("text-green-400"));
-      el.classList.add("text-green-400");
-    }
   </script>
+
 </body>
 </html>
