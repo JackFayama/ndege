@@ -1,126 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>HFM Forex Market</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HFM Market Replica</title>
   <style>
+    :root {
+      --primary: #e30000;
+      --buy: #28a745;
+      --sell: #dc3545;
+      --bg: #f9f9f9;
+      --card-bg: #fff;
+      --gray: #ccc;
+      --font-family: 'Inter', sans-serif;
+    }
+
     body {
-      font-family: Arial, sans-serif;
       margin: 0;
-      background-color: #f5f5f5;
-    }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-      background-color: white;
-    }
-    .logo {
-      font-weight: bold;
+      font-family: var(--font-family);
+      background-color: var(--bg);
       color: #000;
     }
-    .demo {
-      background-color: #007bff;
-      color: white;
-      padding: 3px 8px;
-      border-radius: 5px;
-      font-size: 0.9em;
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background-color: #fff;
     }
-    .balance {
-      font-weight: bold;
-      margin-left: 5px;
+
+    .hfm-logo {
+      font-weight: 700;
+      font-size: 18px;
     }
+
+    .balance-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .demo-badge {
+      background: #007bff;
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
     .search-bar {
       display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: #fff;
+    }
+
+    .search-input {
+      background: #f0f0f0;
+      border-radius: 8px;
       padding: 10px;
-      background-color: white;
+      flex: 1;
+      margin-right: 10px;
+    }
+
+    .tab-menu, .currency-filter {
+      display: flex;
+      gap: 12px;
+      padding: 12px 16px;
+      background: #fff;
+      overflow-x: auto;
+    }
+
+    .tab-menu div {
+      padding-bottom: 4px;
+    }
+
+    .tab-menu .active {
+      border-bottom: 2px solid var(--primary);
+      font-weight: 600;
+    }
+
+    .market-card {
+      background: var(--card-bg);
+      margin: 12px 16px;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .market-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .chart-placeholder {
+      height: 40px;
+      background: #e0e0e0;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+
+    .market-actions {
+      display: flex;
+      justify-content: space-between;
       align-items: center;
     }
-    .tabs, .currencies {
-      display: flex;
-      padding: 10px;
-      background-color: white;
-      gap: 15px;
-    }
-    .tabs div, .currencies div {
-      padding: 5px 10px;
-      border-radius: 15px;
-      font-weight: bold;
-    }
-    .tabs .active {
-      border-bottom: 2px solid red;
-    }
-    .card {
-      background: white;
-      margin: 10px;
-      border-radius: 10px;
-      padding: 15px;
-      box-shadow: 0 1px 5px rgba(0,0,0,0.1);
-    }
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-    }
-    .price-box {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 10px;
-    }
-    .price-box div {
-      font-size: 1.2em;
-    }
-    .sell {
-      color: red;
-    }
+
     .buy {
-      color: green;
+      color: var(--buy);
+      font-weight: 600;
     }
-    .chart {
-      height: 50px;
-      background: lightgray;
-      margin-top: 10px;
-      border-radius: 5px;
+
+    .sell {
+      color: var(--sell);
+      font-weight: 600;
     }
-    .bottom-menu {
+
+    .bottom-nav {
       display: flex;
       justify-content: space-around;
-      align-items: center;
       padding: 10px 0;
-      background-color: white;
-      border-top: 1px solid #ccc;
+      background: #fff;
       position: fixed;
-      bottom: 0;
       width: 100%;
+      bottom: 0;
+      border-top: 1px solid #e0e0e0;
     }
-    .bottom-menu div {
-      font-size: 0.9em;
+
+    .bottom-nav div {
+      font-size: 12px;
       text-align: center;
     }
-    .active-tab {
-      color: red;
+
+    .bottom-nav .active {
+      color: var(--primary);
+      font-weight: 600;
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="logo">HFM</div>
-    <div><span class="demo">Demo</span><span class="balance">KSh10,000,000.00</span></div>
+  <div class="topbar">
+    <div class="hfm-logo">HFM</div>
+    <div class="balance-container">
+      <span class="demo-badge">Demo</span>
+      <span>KSh10,000,000.00</span>
+    </div>
     <div>🔔</div>
   </div>
 
   <div class="search-bar">
-    🔍 Search All Symbols ⚙️
+    <input class="search-input" type="text" placeholder="Search All Symbols" />
+    ⚙️
   </div>
 
-  <div class="tabs">
+  <div class="tab-menu">
     <div class="active">Forex</div>
     <div>Commodities</div>
     <div>Indices</div>
     <div>Stocks</div>
   </div>
 
-  <div class="currencies">
+  <div class="currency-filter">
     <div>🇺🇸 USD</div>
     <div>🇬🇧 GBP</div>
     <div>🇪🇺 EUR</div>
@@ -128,58 +174,60 @@
     <div>🇨🇦</div>
   </div>
 
-  <div class="card">
-    <div class="card-header">
-      <div><strong>EURUSD.Z ⭐</strong></div>
-      <div style="color: green;">⬆️ 0.42%</div>
+  <!-- Cards -->
+  <div class="market-card">
+    <div class="market-header">
+      <span>EURUSD.Z ⭐</span>
+      <span style="color: var(--buy);">↑ 0.42%</span>
     </div>
-    <div class="chart"></div>
-    <div class="price-box">
-      <div class="sell">Sell 1.1572⁴</div>
+    <div class="chart-placeholder"></div>
+    <div class="market-actions">
+      <div class="sell">1.1572⁴ Sell</div>
       <div class="buy">Buy 1.1574³</div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-header">
-      <div><strong>GBPUSD.Z ⭐</strong></div>
-      <div style="color: green;">⬆️ 0.25%</div>
+  <div class="market-card">
+    <div class="market-header">
+      <span>GBPUSD.Z ⭐</span>
+      <span style="color: var(--buy);">↑ 0.25%</span>
     </div>
-    <div class="chart"></div>
-    <div class="price-box">
-      <div class="sell">Sell 1.3587³</div>
+    <div class="chart-placeholder"></div>
+    <div class="market-actions">
+      <div class="sell">1.3587³ Sell</div>
       <div class="buy">Buy 1.3589⁴</div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-header">
-      <div><strong>USDJPY.Z ⭐</strong></div>
-      <div style="color: green;">⬆️ 0.16%</div>
+  <div class="market-card">
+    <div class="market-header">
+      <span>USDJPY.Z ⭐</span>
+      <span style="color: var(--buy);">↑ 0.16%</span>
     </div>
-    <div class="chart"></div>
-    <div class="price-box">
-      <div class="sell">Sell 144.22⁶</div>
+    <div class="chart-placeholder"></div>
+    <div class="market-actions">
+      <div class="sell">144.22⁶ Sell</div>
       <div class="buy">Buy 144.25⁰</div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-header">
-      <div><strong>USDCAD.Z ⭐</strong></div>
-      <div style="color: red;">⬇️ -0.05%</div>
+  <div class="market-card">
+    <div class="market-header">
+      <span>USDCAD.Z ⭐</span>
+      <span style="color: var(--sell);">↓ -0.05%</span>
     </div>
-    <div class="chart" style="background-color: #f8d7da;"></div>
-    <div class="price-box">
-      <div class="sell">Sell 1.3578⁷</div>
+    <div class="chart-placeholder"></div>
+    <div class="market-actions">
+      <div class="sell">1.3578⁷ Sell</div>
       <div class="buy">Buy 1.3581⁵</div>
     </div>
   </div>
 
-  <div class="bottom-menu">
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
     <div>☰<br>Menu</div>
     <div>⬆️<br>Trades</div>
-    <div class="active-tab">📊<br>Markets</div>
+    <div class="active">📊<br>Markets</div>
     <div>📰<br>News</div>
     <div>⋯<br>More</div>
   </div>
