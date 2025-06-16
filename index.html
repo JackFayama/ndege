@@ -237,49 +237,55 @@
   </div>
 
 <script>
-  const API_KEY = 'd5a3e140dfec46a4ad068633491d9a0d'; // your Twelve Data API key
-  const pairs = ['EUR/USD', 'GBP/USD', 'USD/JPY', 'USD/CAD'];
+  const socket = new WebSocket("wss://ws.finnhub.io?token=d17ug69r01qteuvq4ga0d17ug69r01qteuvq4gag");
 
-  const symbolToId = {
-    'EUR/USD': 'EURUSD',
-    'GBP/USD': 'GBPUSD',
-    'USD/JPY': 'USDJPY',
-    'USD/CAD': 'USDCAD'
+  const symbols = {
+    "EURUSD": "OANDA:EUR_USD",
+    "GBPUSD": "OANDA:GBP_USD",
+    "USDJPY": "OANDA:USD_JPY",
+    "USDCAD": "OANDA:USD_CAD"
   };
 
-  const ws = new WebSocket(`wss://ws.twelvedata.com/v1/price?apikey=${API_KEY}`);
+  const prices = {};
 
-  ws.onopen = () => {
-    console.log("Connected to WebSocket");
-    pairs.forEach(pair => {
-      ws.send(JSON.stringify({
-        action: "subscribe",
-        params: {
-          symbols: pair
-        }
-      }));
-    });
-  };
-
-  ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    if (data.price && data.symbol) {
-      const id = symbolToId[data.symbol];
-      if (!id) return;
-      const price = parseFloat(data.price).toFixed(5);
-      document.getElementById(`sell-${id}`).innerText = `${price} Sell`;
-      document.getElementById(`buy-${id}`).innerText = `Buy ${price}`;
-      document.getElementById(`change-${id}`).innerText = 'Live';
+  socket.addEventListener("open", () => {
+    for (let key in symbols) {
+      socket.send(JSON.stringify({ type: "subscribe", symbol: symbols[key] }));
     }
-  };
+  });
 
-  ws.onerror = (error) => {
-    console.error("WebSocket error:", error);
-  };
+  socket.addEventListener("message", event => {
+    const data = JSON.parse(event.data);
+    if (data.type === "trade") {
+      data.data.forEach(trade => {
+        const [prefix, base, quote] = trade.s.split(":")[1].split("_");
+        const id = base + quote;
+        const price = parseFloat(trade.p).toFixed(5);
 
-  ws.onclose = () => {
-    console.warn("WebSocket closed. Will not auto-reconnect.");
-  };
+        prices[id] = prices[id] || { last: price };
+        const change = (price - prices[id].last).toFixed(5);
+        prices[id].last = price;
+
+        const sellEl = document.getElementById(`sell-${id}`);
+        const buyEl = document.getElementById(`buy-${id}`);
+        const changeEl = document.getElementById(`change-${id}`);
+
+        if (sellEl) sellEl.textContent = `${(price - 0.0002).toFixed(5)} Sell`;
+        if (buyEl) buyEl.textContent = `Buy ${(price).toFixed(5)}`;
+
+        if (changeEl) {
+          const perc = ((change / price) * 100).toFixed(2);
+          changeEl.textContent = `${change >= 0 ? "↑" : "↓"} ${Math.abs(perc)}%`;
+          changeEl.style.color = change >= 0 ? "green" : "red";
+        }
+      });
+    }
+  });
+
+  socket.addEventListener("close", () => {
+    console.warn("WebSocket closed. Trying to reconnect in 5 seconds...");
+    setTimeout(() => location.reload(), 5000);
+  });
 </script>
 
 </body>
