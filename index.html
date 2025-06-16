@@ -231,37 +231,37 @@
     <div>📰<br>News</div>
     <div>⋯<br>More</div>
   </div>
+
   <script>
-// Forex Symbols to Track
-const pairs = [
-  { symbol: "EURUSD", tvSymbol: "FX:EURUSD" },
-  { symbol: "GBPUSD", tvSymbol: "FX:GBPUSD" },
-  { symbol: "USDJPY", tvSymbol: "FX:USDJPY" },
-  { symbol: "USDCAD", tvSymbol: "FX:USDCAD" }
-];
+const API_KEY = "7MTUM85YO93SSKLG";
+const pairs = ["EURUSD", "GBPUSD", "USDJPY", "USDCAD"];
 
-// Load TradingView price widget as a hidden iframe
-function createTVFrame(tvSymbol, symbol) {
-  const iframe = document.createElement("iframe");
-  iframe.style.display = "none";
-  iframe.src = `https://s.tradingview.com/embed-widget/mini-symbol-overview/?symbol=${tvSymbol}&locale=en`;
-  document.body.appendChild(iframe);
+async function updatePair(pair) {
+  const from = pair.slice(0, 3);
+  const to = pair.slice(3);
+  const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${from}&to_currency=${to}&apikey=${API_KEY}`;
 
-  const buyEl = document.getElementById(`buy-${symbol}`);
-  const sellEl = document.getElementById(`sell-${symbol}`);
-
-  // Fallback: Use randomizer to simulate (TradingView widgets don't expose JS API directly)
-  setInterval(() => {
-    const price = (Math.random() * (2 - 1) + 1).toFixed(4);
-    buyEl.textContent = `Buy ${parseFloat(price) + 0.0002}`;
-    sellEl.textContent = `${price} Sell`;
-  }, 2000); // Every 2 seconds
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    const rate = data["Realtime Currency Exchange Rate"];
+    if (rate) {
+      const bid = parseFloat(rate["8. Bid Price"]).toFixed(5);
+      const ask = parseFloat(rate["9. Ask Price"]).toFixed(5);
+      document.getElementById(`sell-${pair}`).textContent = `${bid} Sell`;
+      document.getElementById(`buy-${pair}`).textContent = `Buy ${ask}`;
+    }
+  } catch (error) {
+    console.error(`Failed to fetch ${pair}:`, error);
+  }
 }
 
-// Initialize all symbols
-pairs.forEach(({ symbol, tvSymbol }) => {
-  createTVFrame(tvSymbol, symbol);
-});
+function refreshAllPairs() {
+  pairs.forEach(updatePair);
+}
+
+refreshAllPairs();
+setInterval(refreshAllPairs, 30000); // Update every 30s to avoid API rate limit
 </script>
 
 </body>
