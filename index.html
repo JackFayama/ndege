@@ -127,15 +127,23 @@
     const screenWidth = window.innerWidth;
 
     if (screenWidth > 1024) {
-      // Option 1: Redirect to another page
-      // window.location.href = "https://yourdomain.com/access-denied.html";
-
-      // Option 2: Replace page content with denial message
       document.body.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: #111827; color: white; text-align: center; padding: 20px;">
-          <div>
-            <h1 style="font-size: 24px; margin-bottom: 16px;">Access Denied</h1>
-            <p>This platform is optimized for mobile devices only. Please access from a mobile phone.</p>
+        <div style="background: #0f172a; height: 100vh; display: flex; align-items: center; justify-content: center; color: white; font-family: Arial, sans-serif;">
+          <div style="background: #1e293b; padding: 32px; border-radius: 12px; max-width: 500px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.4); text-align: center;">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+              <div style="font-size: 20px; font-weight: bold; color: #38bdf8;">NovaFX</div>
+              <div style="font-size: 14px; opacity: 0.7;">Restricted Access</div>
+            </div>
+
+            <h2 style="font-size: 20px; margin-bottom: 12px;">This platform is optimized for mobile devices.</h2>
+            <p style="font-size: 14px; color: #cbd5e1;">
+              NovaFX mobile is designed for real-time, lightweight trading experiences. For advanced strategy simulations, trade cluster monitoring, or analytics dashboard access, please use a UHD screen (40"+) under authorized conditions.
+            </p>
+
+            <div style="margin-top: 20px; font-size: 13px; color: #94a3b8;">
+              Access from laptops or tablets is temporarily disabled to maintain optimized performance and security.
+            </div>
           </div>
         </div>
       `;
