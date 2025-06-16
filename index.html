@@ -1,130 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NovaFX - Live Forex Market</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      body {
-        padding-top: 160px;
-        padding-bottom: 80px;
-      }
-    </style>
-  </head>
-  <body class="bg-gray-100">
-    <!-- Fixed Silent Header -->
-    <div class="fixed top-0 left-0 right-0 z-50 bg-gray-100">
-      <div class="px-4 py-4">
-        <div class="text-2xl font-bold text-gray-900">NovaFX</div>
-      </div>
-      <div class="bg-green-600 text-white mx-4 mb-3 p-4 rounded-2xl">
-        <div class="text-sm opacity-80">Total</div>
-        <div class="text-3xl font-bold my-1">$5,000.00</div>
-        <div class="text-sm">Margin: $1,200</div>
-        <div class="text-sm">Equity: $5,100</div>
-        <div class="text-sm">Free Funds: $3,900</div>
-      </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NovaFX - Live Forex Market</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 pt-[200px] pb-[80px] text-sm text-gray-900">
+
+  <!-- Fixed Silent Header -->
+  <div class="fixed top-0 left-0 right-0 z-50 bg-gray-100">
+    <div class="p-4">
+      <div class="text-2xl font-bold text-black">NovaFX</div>
     </div>
-
-    <!-- Market Cards -->
-    <div id="market-list">
-      <!-- Cards will be inserted here -->
+    <div class="bg-green-600 text-white mx-4 rounded-2xl p-4">
+      <div class="opacity-80 text-xs">Total</div>
+      <div class="text-3xl font-bold">$5,000.00</div>
+      <div class="text-xs">Margin: $1,200</div>
+      <div class="text-xs">Equity: $5,100</div>
+      <div class="text-xs">Free Funds: $3,900</div>
     </div>
+  </div>
 
-    <!-- Fixed Bottom Navigation -->
-    <div class="fixed bottom-0 left-0 right-0 z-50 bg-gray-100 flex justify-around py-2 rounded-t-2xl border-t border-gray-300">
-      <button onclick="setActive(this)" class="flex flex-col items-center text-blue-800 text-xs">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" class="w-6 h-6 mb-1" viewBox="0 0 24 24"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/></svg>
-        <span>Home</span>
-      </button>
-      <button onclick="setActive(this)" class="flex flex-col items-center text-blue-800 text-xs">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" class="w-6 h-6 mb-1" viewBox="0 0 24 24"><path d="M16 17l-4 4-4-4"/><path d="M12 12v9"/><path d="M8 7l4-4 4 4"/><path d="M12 2v9"/></svg>
-        <span>Trades</span>
-      </button>
-      <button onclick="setActive(this)" class="flex flex-col items-center text-blue-800 text-xs">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" class="w-6 h-6 mb-1" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h0M2 9.5h20"/></svg>
-        <span>Wallet</span>
-      </button>
-      <button onclick="setActive(this)" class="flex flex-col items-center text-blue-800 text-xs">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" class="w-6 h-6 mb-1" viewBox="0 0 24 24"><circle cx="12" cy="10" r="3"/><path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/><circle cx="12" cy="12" r="10"/></svg>
-        <span>User</span>
-      </button>
-    </div>
+  <!-- Market Cards -->
+  <div id="markets">
+    <!-- Cards inserted here -->
+  </div>
 
-    <!-- WebSocket Script and Market Cards Generator -->
-    <script>
-      const socket = new WebSocket("wss://ws.finnhub.io?token=d17ug69r01qteuvq4ga0d17ug69r01qteuvq4gag");
+  <!-- Fixed Bottom Navigation -->
+  <div class="fixed bottom-0 left-0 right-0 z-50 bg-gray-100 flex justify-around py-3 rounded-t-2xl border-t">
+    <button onclick="setActive(this)" class="flex flex-col items-center text-blue-800">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/></svg>
+      <span>Home</span>
+    </button>
+    <button onclick="setActive(this)" class="flex flex-col items-center text-blue-800">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 17l-4 4-4-4"/><path d="M12 12v9"/><path d="M8 7l4-4 4 4"/><path d="M12 2v9"/></svg>
+      <span>Trades</span>
+    </button>
+    <button onclick="setActive(this)" class="flex flex-col items-center text-blue-800">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h0M2 9.5h20"/></svg>
+      <span>Wallet</span>
+    </button>
+    <button onclick="setActive(this)" class="flex flex-col items-center text-blue-800">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="10" r="3"/><path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/><circle cx="12" cy="12" r="10"/></svg>
+      <span>User</span>
+    </button>
+  </div>
 
-      const symbols = {
-        EURUSD: "OANDA:EUR_USD",
-        GBPUSD: "OANDA:GBP_USD",
-        USDJPY: "OANDA:USD_JPY",
-        USDCHF: "OANDA:USD_CHF",
-        USDCAD: "OANDA:USD_CAD",
-        AUDUSD: "OANDA:AUD_USD",
-        NZDUSD: "OANDA:NZD_USD",
-        EURJPY: "OANDA:EUR_JPY",
-        GBPJPY: "OANDA:GBP_JPY",
-        XAUUSD: "OANDA:XAU_USD",
-      };
+  <!-- WebSocket Prices -->
+  <script>
+    const symbols = {
+      "EURUSD": "OANDA:EUR_USD",
+      "GBPUSD": "OANDA:GBP_USD",
+      "USDJPY": "OANDA:USD_JPY",
+      "USDCHF": "OANDA:USD_CHF",
+      "USDCAD": "OANDA:USD_CAD",
+      "AUDUSD": "OANDA:AUD_USD",
+      "NZDUSD": "OANDA:NZD_USD",
+      "EURJPY": "OANDA:EUR_JPY",
+      "GBPJPY": "OANDA:GBP_JPY",
+      "XAUUSD": "OANDA:XAU_USD"
+    };
 
-      const prices = {};
+    const socket = new WebSocket("wss://ws.finnhub.io?token=d17ug69r01qteuvq4ga0d17ug69r01qteuvq4gag");
+    const prices = {};
 
-      const marketList = document.getElementById("market-list");
-      for (const key in symbols) {
-        const id = key;
-        marketList.innerHTML += `
-          <div class="bg-white rounded-xl shadow-md mx-4 my-3 p-4">
-            <div class="flex justify-between font-bold mb-2">
-              <span>${key}</span>
-              <span id="change-${id}" class="text-sm">Loading...</span>
-            </div>
-            <div class="flex justify-between text-sm">
-              <div id="sell-${id}" class="text-red-600">Loading...</div>
-              <div id="buy-${id}" class="text-green-600">Loading...</div>
-            </div>
-          </div>
-        `;
+    socket.addEventListener("open", () => {
+      for (let key in symbols) {
+        socket.send(JSON.stringify({ type: "subscribe", symbol: symbols[key] }));
+        createMarketCard(key);
       }
+    });
 
-      socket.addEventListener("open", () => {
-        for (let key in symbols) {
-          socket.send(JSON.stringify({ type: "subscribe", symbol: symbols[key] }));
-        }
-      });
+    socket.addEventListener("message", event => {
+      const data = JSON.parse(event.data);
+      if (data.type === "trade") {
+        data.data.forEach(trade => {
+          const full = trade.s.replace("OANDA:", "");
+          const id = full.replace("_", "");
+          const price = parseFloat(trade.p).toFixed(5);
 
-      socket.addEventListener("message", (event) => {
-        const data = JSON.parse(event.data);
-        if (data.type === "trade") {
-          data.data.forEach((trade) => {
-            const full = trade.s.replace("OANDA:", "");
-            const id = full.replace("_", "");
-            const price = parseFloat(trade.p).toFixed(5);
+          if (!prices[id]) prices[id] = { last: price };
+          const change = price - prices[id].last;
+          const percent = ((change / prices[id].last) * 100).toFixed(2);
+          prices[id].last = price;
 
-            if (!prices[id]) prices[id] = { last: price };
-            const change = price - prices[id].last;
-            const percentChange = ((change / prices[id].last) * 100).toFixed(2);
-            prices[id].last = price;
+          const sellEl = document.getElementById(`sell-${id}`);
+          const buyEl = document.getElementById(`buy-${id}`);
+          const changeEl = document.getElementById(`change-${id}`);
 
-            const sellEl = document.getElementById(`sell-${id}`);
-            const buyEl = document.getElementById(`buy-${id}`);
-            const changeEl = document.getElementById(`change-${id}`);
-
-            if (sellEl) sellEl.textContent = `${(price - 0.0002).toFixed(5)} Sell`;
-            if (buyEl) buyEl.textContent = `Buy ${price}`;
-            if (changeEl) {
-              changeEl.textContent = `${change >= 0 ? "↑" : "↓"} ${Math.abs(percentChange)}%`;
-              changeEl.classList = change >= 0 ? "text-green-600" : "text-red-600";
-            }
-          });
-        }
-      });
-
-      function setActive(btn) {
-        document.querySelectorAll(".bottom-nav button").forEach((b) => b.classList.remove("text-green-400"));
-        btn.classList.add("text-green-400");
+          if (sellEl) sellEl.textContent = `${(price - 0.0002).toFixed(5)} Sell`;
+          if (buyEl) buyEl.textContent = `Buy ${price}`;
+          if (changeEl) {
+            changeEl.textContent = `${change >= 0 ? "↑" : "↓"} ${Math.abs(percent)}%`;
+            changeEl.className = `font-bold ${change >= 0 ? 'text-green-600' : 'text-red-600'}`;
+          }
+        });
       }
-    </script>
-  </body>
+    });
+
+    socket.addEventListener("close", () => {
+      console.warn("WebSocket closed. Reconnecting...");
+      setTimeout(() => location.reload(), 5000);
+    });
+
+    function createMarketCard(id) {
+      const container = document.getElementById("markets");
+      const card = document.createElement("div");
+      card.className = "bg-white rounded-xl shadow p-4 mx-4 mb-4";
+      card.innerHTML = `
+        <div class="flex justify-between font-semibold mb-2">
+          <span>${id}</span>
+          <span id="change-${id}">Loading...</span>
+        </div>
+        <div class="flex justify-between">
+          <div class="text-red-600" id="sell-${id}">Loading...</div>
+          <div class="text-green-600" id="buy-${id}">Loading...</div>
+        </div>
+      `;
+      container.appendChild(card);
+    }
+
+    function setActive(el) {
+      document.querySelectorAll(".bottom-nav button").forEach(btn => btn.classList.remove("text-green-400"));
+      el.classList.add("text-green-400");
+    }
+  </script>
+</body>
 </html>
