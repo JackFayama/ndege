@@ -101,6 +101,30 @@
       color: #e30000;
       font-weight: 600;
     }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #1f2937; /* Tailwind gray-800 */
+      color: white;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 10px 0;
+      z-index: 50;
+      border-top: 1px solid #374151;
+    }
+
+    .bottom-nav div {
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .bottom-nav .active {
+      color: #16a34a; /* Tailwind green-600 */
+    }
   </style>
 </head>
 <body>
