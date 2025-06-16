@@ -237,42 +237,49 @@
   </div>
 
 <script>
-  const pairs = ["EURUSD", "GBPUSD", "USDJPY", "USDCAD"];
-  const apiKey = "d5a3e140dfec46a4ad068633491d9a0d"; // your valid key
+  const API_KEY = 'd5a3e140dfec46a4ad068633491d9a0d'; // your Twelve Data API key
+  const pairs = ['EUR/USD', 'GBP/USD', 'USD/JPY', 'USD/CAD'];
 
-  function fetchQuote(pair) {
-    fetch(`https://api.twelvedata.com/quote?symbol=${pair}&apikey=${apiKey}`)
-      .then(res => res.json())
-      .then(data => {
-        const price = parseFloat(data.price).toFixed(5);
-        const change = parseFloat(data.percent_change).toFixed(2);
+  const symbolToId = {
+    'EUR/USD': 'EURUSD',
+    'GBP/USD': 'GBPUSD',
+    'USD/JPY': 'USDJPY',
+    'USD/CAD': 'USDCAD'
+  };
 
-        if (!isNaN(price)) {
-          document.getElementById(`sell-${pair}`).textContent = `${price} Sell`;
-          document.getElementById(`buy-${pair}`).textContent = `Buy ${price}`;
-          const changeEl = document.getElementById(`change-${pair}`);
-          if (changeEl) {
-            changeEl.textContent = `${change >= 0 ? "↑" : "↓"} ${change}%`;
-            changeEl.style.color = change >= 0 ? "var(--buy)" : "var(--sell)";
-          }
-        } else {
-          document.getElementById(`sell-${pair}`).textContent = `Sell: N/A`;
-          document.getElementById(`buy-${pair}`).textContent = `Buy: N/A`;
+  const ws = new WebSocket(`wss://ws.twelvedata.com/v1/price?apikey=${API_KEY}`);
+
+  ws.onopen = () => {
+    console.log("Connected to WebSocket");
+    pairs.forEach(pair => {
+      ws.send(JSON.stringify({
+        action: "subscribe",
+        params: {
+          symbols: pair
         }
-      })
-      .catch(err => {
-        console.error("API Error for", pair, err);
-        document.getElementById(`sell-${pair}`).textContent = `Sell: N/A`;
-        document.getElementById(`buy-${pair}`).textContent = `Buy: N/A`;
-      });
-  }
+      }));
+    });
+  };
 
-  function updateAll() {
-    pairs.forEach(fetchQuote);
-  }
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if (data.price && data.symbol) {
+      const id = symbolToId[data.symbol];
+      if (!id) return;
+      const price = parseFloat(data.price).toFixed(5);
+      document.getElementById(`sell-${id}`).innerText = `${price} Sell`;
+      document.getElementById(`buy-${id}`).innerText = `Buy ${price}`;
+      document.getElementById(`change-${id}`).innerText = 'Live';
+    }
+  };
 
-  updateAll(); // load once
-  setInterval(updateAll, 1000); // update every second
+  ws.onerror = (error) => {
+    console.error("WebSocket error:", error);
+  };
+
+  ws.onclose = () => {
+    console.warn("WebSocket closed. Will not auto-reconnect.");
+  };
 </script>
 
 </body>
