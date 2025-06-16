@@ -119,50 +119,110 @@
     <div class="details">Free Funds: $3,900</div>
   </div>
 
-  <!-- 💹 Market Cards -->
-  <div class="market-card">
-    <div class="market-header">
-      <span>EURUSD ⭐</span>
-      <span id="change-EURUSD">Loading...</span>
-    </div>
-    <div class="market-actions">
-      <div class="sell" id="sell-EURUSD">Loading...</div>
-      <div class="buy" id="buy-EURUSD">Loading...</div>
-    </div>
+<!-- 💹 Market Cards -->
+<div class="market-card">
+  <div class="market-header">
+    <span>EURUSD ⭐</span>
+    <span id="change-EURUSD">Loading...</span>
   </div>
+  <div class="market-actions">
+    <div class="sell transition-all cursor-pointer" id="sell-EURUSD" onclick="openTradeModal('EURUSD', 'Sell')">Loading...</div>
+    <div class="buy transition-all cursor-pointer" id="buy-EURUSD" onclick="openTradeModal('EURUSD', 'Buy')">Loading...</div>
+  </div>
+</div>
 
-  <div class="market-card">
-    <div class="market-header">
-      <span>GBPUSD ⭐</span>
-      <span id="change-GBPUSD">Loading...</span>
-    </div>
-    <div class="market-actions">
-      <div class="sell" id="sell-GBPUSD">Loading...</div>
-      <div class="buy" id="buy-GBPUSD">Loading...</div>
-    </div>
+<div class="market-card">
+  <div class="market-header">
+    <span>GBPUSD ⭐</span>
+    <span id="change-GBPUSD">Loading...</span>
   </div>
+  <div class="market-actions">
+    <div class="sell transition-all cursor-pointer" id="sell-GBPUSD" onclick="openTradeModal('GBPUSD', 'Sell')">Loading...</div>
+    <div class="buy transition-all cursor-pointer" id="buy-GBPUSD" onclick="openTradeModal('GBPUSD', 'Buy')">Loading...</div>
+  </div>
+</div>
 
-  <div class="market-card">
-    <div class="market-header">
-      <span>USDJPY ⭐</span>
-      <span id="change-USDJPY">Loading...</span>
-    </div>
-    <div class="market-actions">
-      <div class="sell" id="sell-USDJPY">Loading...</div>
-      <div class="buy" id="buy-USDJPY">Loading...</div>
-    </div>
+<div class="market-card">
+  <div class="market-header">
+    <span>USDJPY ⭐</span>
+    <span id="change-USDJPY">Loading...</span>
   </div>
+  <div class="market-actions">
+    <div class="sell transition-all cursor-pointer" id="sell-USDJPY" onclick="openTradeModal('USDJPY', 'Sell')">Loading...</div>
+    <div class="buy transition-all cursor-pointer" id="buy-USDJPY" onclick="openTradeModal('USDJPY', 'Buy')">Loading...</div>
+  </div>
+</div>
 
-  <div class="market-card">
-    <div class="market-header">
-      <span>USDCAD ⭐</span>
-      <span id="change-USDCAD">Loading...</span>
-    </div>
-    <div class="market-actions">
-      <div class="sell" id="sell-USDCAD">Loading...</div>
-      <div class="buy" id="buy-USDCAD">Loading...</div>
-    </div>
+<div class="market-card">
+  <div class="market-header">
+    <span>USDCAD ⭐</span>
+    <span id="change-USDCAD">Loading...</span>
   </div>
+  <div class="market-actions">
+    <div class="sell transition-all cursor-pointer" id="sell-USDCAD" onclick="openTradeModal('USDCAD', 'Sell')">Loading...</div>
+    <div class="buy transition-all cursor-pointer" id="buy-USDCAD" onclick="openTradeModal('USDCAD', 'Buy')">Loading...</div>
+  </div>
+</div>
+
+<!-- 📈 Trade Modal -->
+<div id="tradeModal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50">
+  <div class="bg-white p-6 rounded-lg w-[90%] max-w-xl text-black relative">
+    <button onclick="closeTradeModal()" class="absolute top-2 right-3 text-xl">×</button>
+    <h2 class="text-lg font-bold mb-2" id="modal-title">Place Trade</h2>
+    <div id="live-price" class="text-2xl font-bold mb-4 text-blue-600"></div>
+    <form>
+      <label class="block mb-2">Lot Size:</label>
+      <select class="w-full mb-4 border p-2 rounded" id="lot-size">
+        <option>0.01</option>
+        <option>0.1</option>
+        <option>1</option>
+        <option>5</option>
+        <option>10</option>
+        <option>20</option>
+        <option>50</option>
+      </select>
+
+      <label class="block mb-2">Stop Loss:</label>
+      <input type="number" class="w-full mb-4 border p-2 rounded" id="stop-loss" placeholder="e.g. 1.2345" />
+
+      <label class="block mb-2">Take Profit:</label>
+      <input type="number" class="w-full mb-4 border p-2 rounded" id="take-profit" placeholder="e.g. 1.2450" />
+
+      <button type="button" onclick="placeTrade()" class="w-full bg-green-600 text-white p-2 rounded">Place Trade</button>
+    </form>
+  </div>
+</div>
+
+<!-- 🧠 JavaScript -->
+<script>
+  function openTradeModal(symbol, action) {
+    document.getElementById("tradeModal").classList.remove("hidden");
+    document.getElementById("modal-title").textContent = `${action} ${symbol}`;
+    const price = document.getElementById(`${action.toLowerCase()}-${symbol}`)?.textContent.match(/\\d+\\.\\d+/);
+    if (price) document.getElementById("live-price").textContent = price[0];
+    
+    // Keep updating price inside modal every second
+    if (window.modalInterval) clearInterval(window.modalInterval);
+    window.modalInterval = setInterval(() => {
+      const newPrice = document.getElementById(`${action.toLowerCase()}-${symbol}`)?.textContent.match(/\\d+\\.\\d+/);
+      if (newPrice) document.getElementById("live-price").textContent = newPrice[0];
+    }, 1000);
+  }
+
+  function closeTradeModal() {
+    document.getElementById("tradeModal").classList.add("hidden");
+    clearInterval(window.modalInterval);
+  }
+
+  function placeTrade() {
+    const lot = document.getElementById("lot-size").value;
+    const sl = document.getElementById("stop-loss").value;
+    const tp = document.getElementById("take-profit").value;
+    alert(`Trade Placed!\nLot: ${lot}, SL: ${sl}, TP: ${tp}`);
+    closeTradeModal();
+    // Add trade to active trades page here
+  }
+</script>
 
   <!-- 📈 Live WebSocket Prices -->
   <script>
