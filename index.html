@@ -176,15 +176,19 @@
 
   <!-- Cards -->
   <div class="market-card">
-    <div class="market-header">
-      <span>EURUSD.Z ⭐</span>
-      <span style="color: var(--buy);">↑ 0.42%</span>
-    </div>
-    <div class="chart-placeholder"></div>
-    <div class="market-actions">
-  <div class="sell" id="sell-EURUSD">Loading...</div>
-  <div class="buy" id="buy-EURUSD">Loading...</div>
+  <div class="market-header">
+    <span>EURUSD.Z ⭐</span>
+    <span id="change-EURUSD" style="color: var(--buy);">↑ 0.00%</span>
+  </div>
+  <div class="chart-placeholder"></div>
+  <div class="market-actions">
+    <div class="sell" id="sell-EURUSD">Loading...</div>
+    <div class="buy" id="buy-EURUSD">Loading...</div>
+  </div>
 </div>
+
+<!-- Repeat for GBPUSD, USDJPY, USDCAD -->
+
   </div>
 
   <div class="market-card">
@@ -233,8 +237,8 @@
   </div>
 
 <script>
-  const pairs = ["EUR/USD", "GBP/USD", "USD/JPY", "USD/CAD"];
-  const apiKey = "d5a3e140dfec46a4ad068633491d9a0d";
+  const pairs = ["EURUSD", "GBPUSD", "USDJPY", "USDCAD"];
+  const apiKey = "d5a3e140dfec46a4ad068633491d9a0d"; // your API key
 
   function fetchQuote(pair) {
     const url = `https://api.twelvedata.com/quote?symbol=${pair}&apikey=${apiKey}`;
@@ -242,21 +246,29 @@
     fetch(url)
       .then(res => res.json())
       .then(data => {
-        const id = pair.replace("/", "");
+        const sellId = `sell-${pair}`;
+        const buyId = `buy-${pair}`;
+        const changeId = `change-${pair}`;
 
-        const sellEl = document.getElementById(`sell-${id}`);
-        const buyEl = document.getElementById(`buy-${id}`);
+        const sellEl = document.getElementById(sellId);
+        const buyEl = document.getElementById(buyId);
+        const changeEl = document.getElementById(changeId);
 
-        if (data && data.bid && data.ask) {
+        if (data && data.bid && data.ask && data.percent_change) {
           const bid = parseFloat(data.bid).toFixed(5);
           const ask = parseFloat(data.ask).toFixed(5);
+          const change = parseFloat(data.percent_change).toFixed(2);
 
           if (sellEl) sellEl.textContent = `${bid} Sell`;
           if (buyEl) buyEl.textContent = `Buy ${ask}`;
+          if (changeEl) {
+            changeEl.textContent = `${change > 0 ? "↑" : "↓"} ${change}%`;
+            changeEl.style.color = change >= 0 ? "var(--buy)" : "var(--sell)";
+          }
         } else {
           if (sellEl) sellEl.textContent = `Sell: N/A`;
           if (buyEl) buyEl.textContent = `Buy: N/A`;
-          console.warn(`Missing data for ${pair}`, data);
+          if (changeEl) changeEl.textContent = `0.00%`;
         }
       })
       .catch(err => {
@@ -264,15 +276,12 @@
       });
   }
 
-  function refreshQuotes() {
+  function updateQuotes() {
     pairs.forEach(pair => fetchQuote(pair));
   }
 
-  // Start immediately
-  refreshQuotes();
-
-  // Update every 1 second
-  setInterval(refreshQuotes, 1000);
+  updateQuotes(); // initial load
+  setInterval(updateQuotes, 1000); // every second
 </script>
 
 </body>
