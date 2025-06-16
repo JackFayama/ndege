@@ -1,49 +1,187 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HFM Markets UI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body class="bg-gray-100 text-black">
-    <!-- Header Bar without time -->
-    <div class="flex justify-between items-center px-4 py-2 bg-white shadow">
-      <div class="flex items-center gap-2">
-        <img src="https://i.imgur.com/NdH4uYp.png" alt="HFM" class="h-6" />
-        <span class="bg-blue-500 text-white text-xs px-2 rounded">Demo</span>
-        <span class="font-semibold text-sm">KSh10,000,000.00</span>
-      </div>
-      <div class="flex items-center gap-2">
-        <div class="relative">
-          <div class="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full"></div>
-          <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-        </div>
-        <div class="relative">
-          <div class="text-xs text-white bg-red-600 rounded-full w-4 h-4 flex items-center justify-center absolute top-0 right-0">1</div>
-        </div>
-      </div>
-    </div>
+<head>
+  <meta charset="UTF-8">
+  <title>HFM Forex Market</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background-color: #f5f5f5;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background-color: white;
+    }
+    .logo {
+      font-weight: bold;
+      color: #000;
+    }
+    .demo {
+      background-color: #007bff;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-size: 0.9em;
+    }
+    .balance {
+      font-weight: bold;
+      margin-left: 5px;
+    }
+    .search-bar {
+      display: flex;
+      padding: 10px;
+      background-color: white;
+      align-items: center;
+    }
+    .tabs, .currencies {
+      display: flex;
+      padding: 10px;
+      background-color: white;
+      gap: 15px;
+    }
+    .tabs div, .currencies div {
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-weight: bold;
+    }
+    .tabs .active {
+      border-bottom: 2px solid red;
+    }
+    .card {
+      background: white;
+      margin: 10px;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+    }
+    .price-box {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    .price-box div {
+      font-size: 1.2em;
+    }
+    .sell {
+      color: red;
+    }
+    .buy {
+      color: green;
+    }
+    .chart {
+      height: 50px;
+      background: lightgray;
+      margin-top: 10px;
+      border-radius: 5px;
+    }
+    .bottom-menu {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 10px 0;
+      background-color: white;
+      border-top: 1px solid #ccc;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+    }
+    .bottom-menu div {
+      font-size: 0.9em;
+      text-align: center;
+    }
+    .active-tab {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">HFM</div>
+    <div><span class="demo">Demo</span><span class="balance">KSh10,000,000.00</span></div>
+    <div>🔔</div>
+  </div>
 
-    <!-- Search and Categories -->
-    <div class="p-4 bg-white">
-      <input type="text" placeholder="Search All Symbols" class="w-full px-4 py-2 rounded bg-gray-100 border border-gray-300" />
-      <div class="flex space-x-2 mt-4 overflow-x-auto">
-        <button class="text-red-600 font-semibold border-b-2 border-red-600">Forex</button>
-        <button>Commodities</button>
-        <button>Indices</button>
-        <button>Stocks</button>
-      </div>
-      <div class="flex space-x-2 mt-4 overflow-x-auto">
-        <button class="bg-gray-200 px-3 py-1 rounded">🇺🇸 USD</button>
-        <button class="bg-gray-200 px-3 py-1 rounded">🇬🇧 GBP</button>
-        <button class="bg-gray-200 px-3 py-1 rounded">🇪🇺 EUR</button>
-        <button class="bg-gray-200 px-3 py-1 rounded">🇯🇵 JPY</button>
-        <button class="bg-gray-200 px-3 py-1 rounded">🇨🇦 CAD</button>
-      </div>
-    </div>
+  <div class="search-bar">
+    🔍 Search All Symbols ⚙️
+  </div>
 
-    <!-- Markets Section -->
-    <!-- [remains unchanged, continuing as in your current layout] -->
-  </body>
+  <div class="tabs">
+    <div class="active">Forex</div>
+    <div>Commodities</div>
+    <div>Indices</div>
+    <div>Stocks</div>
+  </div>
+
+  <div class="currencies">
+    <div>🇺🇸 USD</div>
+    <div>🇬🇧 GBP</div>
+    <div>🇪🇺 EUR</div>
+    <div>🇯🇵 JPY</div>
+    <div>🇨🇦</div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div><strong>EURUSD.Z ⭐</strong></div>
+      <div style="color: green;">⬆️ 0.42%</div>
+    </div>
+    <div class="chart"></div>
+    <div class="price-box">
+      <div class="sell">Sell 1.1572⁴</div>
+      <div class="buy">Buy 1.1574³</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div><strong>GBPUSD.Z ⭐</strong></div>
+      <div style="color: green;">⬆️ 0.25%</div>
+    </div>
+    <div class="chart"></div>
+    <div class="price-box">
+      <div class="sell">Sell 1.3587³</div>
+      <div class="buy">Buy 1.3589⁴</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div><strong>USDJPY.Z ⭐</strong></div>
+      <div style="color: green;">⬆️ 0.16%</div>
+    </div>
+    <div class="chart"></div>
+    <div class="price-box">
+      <div class="sell">Sell 144.22⁶</div>
+      <div class="buy">Buy 144.25⁰</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div><strong>USDCAD.Z ⭐</strong></div>
+      <div style="color: red;">⬇️ -0.05%</div>
+    </div>
+    <div class="chart" style="background-color: #f8d7da;"></div>
+    <div class="price-box">
+      <div class="sell">Sell 1.3578⁷</div>
+      <div class="buy">Buy 1.3581⁵</div>
+    </div>
+  </div>
+
+  <div class="bottom-menu">
+    <div>☰<br>Menu</div>
+    <div>⬆️<br>Trades</div>
+    <div class="active-tab">📊<br>Markets</div>
+    <div>📰<br>News</div>
+    <div>⋯<br>More</div>
+  </div>
+</body>
 </html>
