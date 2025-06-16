@@ -288,6 +288,67 @@
       setTimeout(() => location.reload(), 5000);
     });
   </script>
+  <script>
+  function navigateTo(page) {
+    switch (page) {
+      case 'home':
+        // window.location.href = 'home.html';
+        console.log("Go to Home");
+        break;
+      case 'trades':
+        // window.location.href = 'trades.html';
+        console.log("Go to Trades");
+        break;
+      case 'wallet':
+        // window.location.href = 'wallet.html';
+        console.log("Go to Wallet");
+        break;
+      case 'user':
+        // window.location.href = 'user.html';
+        console.log("Go to User");
+        break;
+    }
+  }
+</script>
+
+<!-- Bottom Navigation Bar -->
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow z-50">
+  <div class="flex justify-around text-center text-xs text-gray-700">
+    
+    <!-- Home -->
+    <button onclick="navigateTo('home')" class="flex flex-col items-center p-2 hover:text-blue-600">
+      <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M3 12l2-2m0 0l7-7 7 7m-2 2v7a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-4H7v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7z" />
+      </svg>
+      <span>Home</span>
+    </button>
+
+    <!-- Trades -->
+    <button onclick="navigateTo('trades')" class="flex flex-col items-center p-2 hover:text-blue-600">
+      <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M9 17v-6a2 2 0 1 1 4 0v6m4 0v-4a2 2 0 1 1 4 0v4m-8 0v-2a2 2 0 1 1 4 0v2m-8 0H5a2 2 0 1 1 0-4h2" />
+      </svg>
+      <span>Trades</span>
+    </button>
+
+    <!-- Wallet -->
+    <button onclick="navigateTo('wallet')" class="flex flex-col items-center p-2 hover:text-blue-600">
+      <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M4 6h16M4 10h16M4 14h10m0 0v4m0-4v-4" />
+      </svg>
+      <span>Wallet</span>
+    </button>
+
+    <!-- User -->
+    <button onclick="navigateTo('user')" class="flex flex-col items-center p-2 hover:text-blue-600">
+      <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M5.121 17.804A9 9 0 0 1 12 15a9 9 0 0 1 6.879 2.804M15 11a3 3 0 1 0-6 0 3 3 0 0 0 6 0z" />
+      </svg>
+      <span>User</span>
+    </button>
+
+  </div>
+</div>
 
 </body>
 </html>
