@@ -164,65 +164,76 @@
   </div>
 </div>
 
-<!-- 📈 Trade Modal -->
-<div id="tradeModal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50">
-  <div class="bg-white p-6 rounded-lg w-[90%] max-w-xl text-black relative">
-    <button onclick="closeTradeModal()" class="absolute top-2 right-3 text-xl">×</button>
-    <h2 class="text-lg font-bold mb-2" id="modal-title">Place Trade</h2>
-    <div id="live-price" class="text-2xl font-bold mb-4 text-blue-600"></div>
-    <form>
-      <label class="block mb-2">Lot Size:</label>
-      <select class="w-full mb-4 border p-2 rounded" id="lot-size">
-        <option>0.01</option>
-        <option>0.1</option>
-        <option>1</option>
-        <option>5</option>
-        <option>10</option>
-        <option>20</option>
-        <option>50</option>
-      </select>
+<!-- Trade Modal -->
+<div id="tradeModal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50">
+  <div class="bg-white w-11/12 max-w-md p-6 rounded-lg shadow-lg text-black">
+    <h2 class="text-lg font-semibold mb-4" id="tradeModalTitle">Place Trade</h2>
 
-      <label class="block mb-2">Stop Loss:</label>
-      <input type="number" class="w-full mb-4 border p-2 rounded" id="stop-loss" placeholder="e.g. 1.2345" />
+    <div class="mb-3">
+      <label class="block text-sm mb-1">Live Price</label>
+      <div id="liveTradePrice" class="text-xl font-bold text-green-600">Loading...</div>
+    </div>
 
-      <label class="block mb-2">Take Profit:</label>
-      <input type="number" class="w-full mb-4 border p-2 rounded" id="take-profit" placeholder="e.g. 1.2450" />
+    <div class="mb-3">
+      <label class="block text-sm mb-1">Lot Size (0.01–50)</label>
+      <input id="lotSizeInput" type="number" min="0.01" max="50" step="0.01" value="1.00" class="w-full px-3 py-2 border rounded">
+    </div>
 
-      <button type="button" onclick="placeTrade()" class="w-full bg-green-600 text-white p-2 rounded">Place Trade</button>
-    </form>
+    <div class="mb-3">
+      <label class="block text-sm mb-1">Stop Loss</label>
+      <input id="stopLossInput" type="number" class="w-full px-3 py-2 border rounded">
+    </div>
+
+    <div class="mb-3">
+      <label class="block text-sm mb-1">Take Profit</label>
+      <input id="takeProfitInput" type="number" class="w-full px-3 py-2 border rounded">
+    </div>
+
+    <div class="flex justify-between mt-6">
+      <button onclick="closeTradeModal()" class="px-4 py-2 bg-gray-500 text-white rounded">Cancel</button>
+      <button onclick="submitTrade()" class="px-4 py-2 bg-green-600 text-white rounded">Place Trade</button>
+    </div>
   </div>
 </div>
 
-<!-- 🧠 JavaScript -->
-<script>
-  function openTradeModal(symbol, action) {
-    document.getElementById("tradeModal").classList.remove("hidden");
-    document.getElementById("modal-title").textContent = `${action} ${symbol}`;
-    const price = document.getElementById(`${action.toLowerCase()}-${symbol}`)?.textContent.match(/\\d+\\.\\d+/);
-    if (price) document.getElementById("live-price").textContent = price[0];
-    
-    // Keep updating price inside modal every second
-    if (window.modalInterval) clearInterval(window.modalInterval);
-    window.modalInterval = setInterval(() => {
-      const newPrice = document.getElementById(`${action.toLowerCase()}-${symbol}`)?.textContent.match(/\\d+\\.\\d+/);
-      if (newPrice) document.getElementById("live-price").textContent = newPrice[0];
-    }, 1000);
-  }
+  <script>
+let currentSymbol = "";
+let livePrice = 0;
 
-  function closeTradeModal() {
-    document.getElementById("tradeModal").classList.add("hidden");
-    clearInterval(window.modalInterval);
-  }
+function openTradeModal(symbol) {
+  currentSymbol = symbol;
+  document.getElementById("tradeModal").classList.remove("hidden");
+  document.getElementById("tradeModalTitle").innerText = `Place Trade for ${symbol}`;
+  document.getElementById("stopLossInput").value = (livePrice - 0.0020).toFixed(5);
+  document.getElementById("takeProfitInput").value = (livePrice + 0.0030).toFixed(5);
+}
 
-  function placeTrade() {
-    const lot = document.getElementById("lot-size").value;
-    const sl = document.getElementById("stop-loss").value;
-    const tp = document.getElementById("take-profit").value;
-    alert(`Trade Placed!\nLot: ${lot}, SL: ${sl}, TP: ${tp}`);
-    closeTradeModal();
-    // Add trade to active trades page here
-  }
+function closeTradeModal() {
+  document.getElementById("tradeModal").classList.add("hidden");
+}
+
+function submitTrade() {
+  const lot = parseFloat(document.getElementById("lotSizeInput").value);
+  const sl = parseFloat(document.getElementById("stopLossInput").value);
+  const tp = parseFloat(document.getElementById("takeProfitInput").value);
+
+  const trade = {
+    symbol: currentSymbol,
+    lotSize: lot,
+    entry: livePrice,
+    stopLoss: sl,
+    takeProfit: tp,
+    time: new Date().toLocaleString()
+  };
+
+  let trades = JSON.parse(localStorage.getItem("novaTrades") || "[]");
+  trades.push(trade);
+  localStorage.setItem("novaTrades", JSON.stringify(trades));
+  closeTradeModal();
+  alert("Trade placed!");
+}
 </script>
+
 
   <!-- 📈 Live WebSocket Prices -->
   <script>
@@ -276,6 +287,12 @@
       console.warn("WebSocket closed. Reconnecting in 5 seconds...");
       setTimeout(() => location.reload(), 5000);
     });
+
+    if (currentSymbol === id) {
+  document.getElementById("liveTradePrice").innerText = price;
+  livePrice = parseFloat(price);
+}
+
   </script>
 
 </body>
