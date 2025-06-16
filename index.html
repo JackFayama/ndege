@@ -232,41 +232,46 @@
     <div>⋯<br>More</div>
   </div>
 
- <script>
+<script>
   const pairs = ["EUR/USD", "GBP/USD", "USD/JPY", "USD/CAD"];
   const apiKey = "d5a3e140dfec46a4ad068633491d9a0d";
 
   function fetchQuote(pair) {
     const url = `https://api.twelvedata.com/quote?symbol=${pair}&apikey=${apiKey}`;
+
     fetch(url)
       .then(res => res.json())
       .then(data => {
-        if (!data || data.status === "error") {
-          console.error(`Error fetching ${pair}:`, data.message);
-          return;
-        }
-
-        const bid = parseFloat(data.bid).toFixed(5);
-        const ask = parseFloat(data.ask).toFixed(5);
         const id = pair.replace("/", "");
 
         const sellEl = document.getElementById(`sell-${id}`);
         const buyEl = document.getElementById(`buy-${id}`);
 
-        if (sellEl) sellEl.textContent = `${bid} Sell`;
-        if (buyEl) buyEl.textContent = `Buy ${ask}`;
+        if (data && data.bid && data.ask) {
+          const bid = parseFloat(data.bid).toFixed(5);
+          const ask = parseFloat(data.ask).toFixed(5);
+
+          if (sellEl) sellEl.textContent = `${bid} Sell`;
+          if (buyEl) buyEl.textContent = `Buy ${ask}`;
+        } else {
+          if (sellEl) sellEl.textContent = `Sell: N/A`;
+          if (buyEl) buyEl.textContent = `Buy: N/A`;
+          console.warn(`Missing data for ${pair}`, data);
+        }
       })
-      .catch(err => console.error(`Error: ${err}`));
+      .catch(err => {
+        console.error(`Error fetching ${pair}:`, err);
+      });
   }
 
   function refreshQuotes() {
     pairs.forEach(pair => fetchQuote(pair));
   }
 
-  // Fetch once immediately
+  // Start immediately
   refreshQuotes();
 
-  // Then update every second
+  // Update every 1 second
   setInterval(refreshQuotes, 1000);
 </script>
 
