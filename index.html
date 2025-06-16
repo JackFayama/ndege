@@ -9,7 +9,7 @@
       font-family: Arial, sans-serif;
       background: #f0f0f0;
       margin: 0;
-      padding-top: 180px; /* space for fixed header */
+      padding-top: 140px; /* space for fixed top */
       padding-bottom: 80px; /* space for bottom nav */
     }
 
@@ -18,9 +18,8 @@
       top: 0;
       left: 0;
       right: 0;
+      background: #fff;
       z-index: 50;
-      background: white;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .logo-container {
@@ -111,7 +110,7 @@
     }
 
     .bottom-nav button.active {
-      color: #4ade80;
+      color: #4ade80; /* green-400 */
     }
 
     .bottom-nav svg {
@@ -119,43 +118,24 @@
       height: 24px;
       margin-bottom: 4px;
     }
-    
-    body 
-  {
-  font-family: Arial, sans-serif;
-  background: #f0f0f0;
-  margin: 0;
-  padding-top: 180px; /* space for fixed header */
-  padding-bottom: 80px; /* for bottom nav */
-}
-
-.header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  background: #f0f0f0; /* match page background */
-  /* box-shadow: none; */ /* remove any visual separation */
-}
   </style>
 </head>
-<body>
+<body
 
-  <!-- Fixed Header -->
-  <div class="header">
-    <div class="logo-container">
-      <div class="logo">NovaFX</div>
-    </div>
-    <div class="balance-card">
-      <div class="title">Total</div>
-      <div class="amount">$5,000.00</div>
-      <div class="details">Margin: $1,200</div>
-      <div class="details">Equity: $5,100</div>
-      <div class="details">Free Funds: $3,900</div>
-    </div>
+  <!-- Top Logo -->
+  <div class="logo-container">
+    <div class="logo">NovaFX</div>
   </div>
-  
+
+  <!-- Balance Card -->
+  <div class="balance-card">
+    <div class="title">Total</div>
+    <div class="amount">$5,000.00</div>
+    <div class="details">Margin: $1,200</div>
+    <div class="details">Equity: $5,100</div>
+    <div class="details">Free Funds: $3,900</div>
+  </div>
+
 <div class="market-card">
   <div class="market-header">
     <span>EURUSD</span>
