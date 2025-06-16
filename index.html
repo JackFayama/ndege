@@ -5,66 +5,118 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Live Forex Market - NovaFX</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f0f0f0; margin: 0; padding-bottom: 80px; }
-
-    .top-bar {
-      background: #111827;
-      color: white;
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 14px;
-      flex-wrap: wrap;
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      margin: 0;
+      padding-bottom: 80px;
     }
+
+    .logo-container {
+      padding: 16px;
+    }
+
     .logo {
       font-weight: bold;
-      font-size: 18px;
-      color: #38bdf8;
+      font-size: 24px;
+      color: #111;
     }
-    .account-info {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
+
+    .balance-card {
+      background: #16a34a;
+      color: white;
+      border-radius: 16px;
+      margin: 0 16px;
+      padding: 16px;
+      position: relative;
     }
-    .account-info div {
-      background: #1f2937;
-      padding: 6px 10px;
-      border-radius: 6px;
+
+    .balance-card .title {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    .balance-card .amount {
+      font-size: 32px;
+      font-weight: bold;
+      margin: 4px 0;
+    }
+
+    .balance-card .details {
+      font-size: 14px;
     }
 
     .market-card {
       background: #fff;
-      margin: 12px;
+      margin: 12px 16px;
       padding: 16px;
       border-radius: 10px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     }
+
     .market-header {
       display: flex;
       justify-content: space-between;
       font-weight: bold;
       margin-bottom: 10px;
     }
+
     .market-actions {
       display: flex;
       justify-content: space-between;
     }
-    .sell { color: red; }
-    .buy { color: green; }
+
+    .sell {
+      color: red;
+    }
+
+    .buy {
+      color: green;
+    }
+
+    .chart-placeholder {
+      height: 40px;
+      background: #e0e0e0;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+
+    .bottom-nav {
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      background: #fff;
+      position: fixed;
+      width: 100%;
+      bottom: 0;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .bottom-nav div {
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .bottom-nav .active {
+      color: #e30000;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
 
-  <!-- 🔝 Top Bar -->
-  <div class="top-bar">
+  <!-- Top Logo -->
+  <div class="logo-container">
     <div class="logo">NovaFX</div>
-    <div class="account-info">
-      <div>Balance: $5,000</div>
-      <div>Margin: $1,200</div>
-      <div>Equity: $5,100</div>
-      <div>Free Funds: $3,900</div>
-    </div>
+  </div>
+
+  <!-- Balance Card -->
+  <div class="balance-card">
+    <div class="title">Total</div>
+    <div class="amount">$5,000.00</div>
+    <div class="details">Margin: $1,200</div>
+    <div class="details">Equity: $5,100</div>
+    <div class="details">Free Funds: $3,900</div>
   </div>
 
   <!-- 💹 Market Cards -->
