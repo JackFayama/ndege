@@ -3,259 +3,245 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NovaFX - Live Forex Trading</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Live Forex Market - NovaFX</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f3f4f6; }
-    .modal { display: none; }
-    .modal.active { display: flex; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      margin: 0;
+      padding-bottom: 80px;
+    }
+
+    .logo-container {
+      padding: 16px;
+    }
+
+    .logo {
+      font-weight: bold;
+      font-size: 24px;
+      color: #111;
+    }
+
+    .balance-card {
+      background: #16a34a;
+      color: white;
+      border-radius: 16px;
+      margin: 0 16px;
+      padding: 16px;
+      position: relative;
+    }
+
+    .balance-card .title {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    .balance-card .amount {
+      font-size: 32px;
+      font-weight: bold;
+      margin: 4px 0;
+    }
+
+    .balance-card .details {
+      font-size: 14px;
+    }
+
+    .market-card {
+      background: #fff;
+      margin: 12px 16px;
+      padding: 16px;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    .market-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .market-actions {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .sell {
+      color: red;
+      cursor: pointer;
+    }
+
+    .buy {
+      color: green;
+      cursor: pointer;
+    }
+
+    .bottom-nav {
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      background: #fff;
+      position: fixed;
+      width: 100%;
+      bottom: 0;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .bottom-nav div {
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .bottom-nav .active {
+      color: #e30000;
+      font-weight: 600;
+    }
   </style>
 </head>
-<body class="pb-24">
+<body>
+
   <!-- Top Logo -->
-  <div class="p-4">
-    <div class="text-2xl font-bold text-gray-800">NovaFX</div>
+  <div class="logo-container">
+    <div class="logo">NovaFX</div>
   </div>
 
   <!-- Balance Card -->
-  <div class="bg-green-600 text-white rounded-2xl mx-4 p-4">
-    <div class="text-sm opacity-80">Total</div>
-    <div id="balanceDisplay" class="text-4xl font-bold">$5000.00</div>
-    <div class="text-sm">Margin: <span id="marginDisplay">$0.00</span></div>
-    <div class="text-sm">Equity: <span id="equityDisplay">$5000.00</span></div>
-    <div class="text-sm">Free Funds: <span id="freeDisplay">$5000.00</span></div>
+  <div class="balance-card">
+    <div class="title">Total</div>
+    <div class="amount" id="balanceDisplay">$5000.00</div>
+    <div class="details" id="marginDisplay">Margin: $0</div>
+    <div class="details" id="equityDisplay">Equity: $5000</div>
+    <div class="details" id="freeDisplay">Free Funds: $5000</div>
   </div>
 
-<!-- 💹 Market Cards -->
-<div class="market-card">
-  <div class="market-header">
-    <span>EURUSD ⭐</span>
-    <span id="change-EURUSD">Loading...</span>
-  </div>
-  <div class="market-actions">
-    <div class="sell transition-all cursor-pointer" id="sell-EURUSD" onclick="openTradeModal('EURUSD', 'Sell')">Loading...</div>
-    <div class="buy transition-all cursor-pointer" id="buy-EURUSD" onclick="openTradeModal('EURUSD', 'Buy')">Loading...</div>
-  </div>
-</div>
-
-<div class="market-card">
-  <div class="market-header">
-    <span>GBPUSD ⭐</span>
-    <span id="change-GBPUSD">Loading...</span>
-  </div>
-  <div class="market-actions">
-    <div class="sell transition-all cursor-pointer" id="sell-GBPUSD" onclick="openTradeModal('GBPUSD', 'Sell')">Loading...</div>
-    <div class="buy transition-all cursor-pointer" id="buy-GBPUSD" onclick="openTradeModal('GBPUSD', 'Buy')">Loading...</div>
-  </div>
-</div>
-
-<div class="market-card">
-  <div class="market-header">
-    <span>USDJPY ⭐</span>
-    <span id="change-USDJPY">Loading...</span>
-  </div>
-  <div class="market-actions">
-    <div class="sell transition-all cursor-pointer" id="sell-USDJPY" onclick="openTradeModal('USDJPY', 'Sell')">Loading...</div>
-    <div class="buy transition-all cursor-pointer" id="buy-USDJPY" onclick="openTradeModal('USDJPY', 'Buy')">Loading...</div>
-  </div>
-</div>
-
-<div class="market-card">
-  <div class="market-header">
-    <span>USDCAD ⭐</span>
-    <span id="change-USDCAD">Loading...</span>
-  </div>
-  <div class="market-actions">
-    <div class="sell transition-all cursor-pointer" id="sell-USDCAD" onclick="openTradeModal('USDCAD', 'Sell')">Loading...</div>
-    <div class="buy transition-all cursor-pointer" id="buy-USDCAD" onclick="openTradeModal('USDCAD', 'Buy')">Loading...</div>
-  </div>
-</div>
-
- <!-- Trades Section -->
-  <div class="mx-4 mt-8">
-    <h2 class="text-lg font-semibold mb-2">Open Trades</h2>
-    <div id="tradesList" class="space-y-3"></div>
-  </div>
-
-  <!-- Trade Modal -->
-  <div id="tradeModal" class="modal fixed inset-0 bg-black bg-opacity-60 items-center justify-center z-50">
-    <div class="bg-white rounded-lg w-11/12 max-w-md p-6 text-black">
-      <h2 class="text-xl font-bold mb-4" id="tradeTitle">Trade</h2>
-      <p class="text-sm">Live Price: <span id="modalLivePrice" class="font-semibold text-green-600">0.00000</span></p>
-      <div class="mt-3">
-        <label class="text-sm">Lot Size (0.01–50)</label>
-        <input type="number" id="lotInput" min="0.01" max="50" step="0.01" class="w-full p-2 border rounded" />
-      </div>
-      <div class="mt-3">
-        <label class="text-sm">Stop Loss</label>
-        <input type="number" id="slInput" class="w-full p-2 border rounded" />
-      </div>
-      <div class="mt-3">
-        <label class="text-sm">Take Profit</label>
-        <input type="number" id="tpInput" class="w-full p-2 border rounded" />
-      </div>
-      <div class="flex justify-between mt-6">
-        <button onclick="closeModal()" class="bg-gray-500 px-4 py-2 text-white rounded">Cancel</button>
-        <button onclick="placeTrade()" class="bg-green-600 px-4 py-2 text-white rounded">Place</button>
-      </div>
+  <!-- Market Cards -->
+  <div class="market-card">
+    <div class="market-header">
+      <span>EURUSD ⭐</span>
+      <span id="change-EURUSD">Loading...</span>
+    </div>
+    <div class="market-actions">
+      <div class="sell" id="sell-EURUSD" onclick="openTradeModal('EURUSD', 'Sell')">Loading...</div>
+      <div class="buy" id="buy-EURUSD" onclick="openTradeModal('EURUSD', 'Buy')">Loading...</div>
     </div>
   </div>
 
-  <!-- Info Modal -->
-  <div id="infoModal" class="modal fixed inset-0 bg-black bg-opacity-60 items-center justify-center z-50">
-    <div class="bg-white rounded-lg w-11/12 max-w-sm p-4 text-center">
-      <p id="infoText" class="text-black text-lg font-semibold">Info</p>
-      <button onclick="closeInfoModal()" class="mt-4 bg-blue-600 px-4 py-2 text-white rounded">OK</button>
+  <!-- Trade Modal -->
+  <div id="tradeModal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50">
+    <div class="bg-white w-11/12 max-w-md p-6 rounded-lg shadow-lg text-black">
+      <h2 class="text-lg font-semibold mb-4" id="tradeModalTitle">Place Trade</h2>
+      <div class="mb-3">
+        <label class="block text-sm mb-1">Live Price</label>
+        <div id="liveTradePrice" class="text-xl font-bold text-green-600">Loading...</div>
+      </div>
+      <div class="mb-3">
+        <label class="block text-sm mb-1">Lot Size (0.01–50)</label>
+        <input id="lotSizeInput" type="number" min="0.01" max="50" step="0.01" value="1.00" class="w-full px-3 py-2 border rounded">
+      </div>
+      <div class="mb-3">
+        <label class="block text-sm mb-1">Stop Loss</label>
+        <input id="stopLossInput" type="number" class="w-full px-3 py-2 border rounded">
+      </div>
+      <div class="mb-3">
+        <label class="block text-sm mb-1">Take Profit</label>
+        <input id="takeProfitInput" type="number" class="w-full px-3 py-2 border rounded">
+      </div>
+      <div class="flex justify-between mt-6">
+        <button onclick="closeTradeModal()" class="px-4 py-2 bg-gray-500 text-white rounded">Cancel</button>
+        <button onclick="submitTrade()" class="px-4 py-2 bg-green-600 text-white rounded">Place Trade</button>
+      </div>
     </div>
   </div>
 
   <script>
-    let balance = parseFloat(localStorage.getItem("balance") || "5000");
-    let margin = 0;
-    let trades = JSON.parse(localStorage.getItem("trades") || "[]");
-    let livePrices = {};
-    let selectedSymbol = "";
-    let tradeDirection = "";
+    let currentSymbol = "";
+    let livePrice = 0;
 
-    const symbols = ["EURUSD","GBPUSD","USDJPY","USDCAD","AUDUSD","USDCHF","NZDUSD","EURGBP","EURJPY","GBPJPY","CADJPY","EURCHF","AUDJPY","CHFJPY","XAUUSD","USDZAR","USDHKD","USDSGD","USDMXN","USDNOK"];
-
-    const displayPrices = () => {
-      const container = document.getElementById("marketContainer");
-      container.innerHTML = symbols.map(sym => `
-        <div class="bg-white mx-4 my-2 p-4 rounded shadow">
-          <div class="flex justify-between font-bold mb-2">
-            <span>${sym}</span>
-            <span id="chg-${sym}">-</span>
-          </div>
-          <div class="flex justify-between">
-            <button onclick="openTrade('${sym}', 'Sell')" class="text-red-600 font-semibold">Sell <span id="sell-${sym}">-</span></button>
-            <button onclick="openTrade('${sym}', 'Buy')" class="text-green-600 font-semibold">Buy <span id="buy-${sym}">-</span></button>
-          </div>
-        </div>
-      `).join("");
-    };
-
-    const updateBalanceDisplay = () => {
-      document.getElementById("balanceDisplay").innerText = `$${balance.toFixed(2)}`;
-      document.getElementById("marginDisplay").innerText = `$${margin.toFixed(2)}`;
-      document.getElementById("equityDisplay").innerText = `$${(balance).toFixed(2)}`;
-      document.getElementById("freeDisplay").innerText = `$${(balance - margin).toFixed(2)}`;
-    };
-
-    function openTrade(symbol, direction) {
-      selectedSymbol = symbol;
-      tradeDirection = direction;
-      document.getElementById("tradeTitle").innerText = `${direction} ${symbol}`;
-      document.getElementById("modalLivePrice").innerText = livePrices[symbol] || "-";
-      document.getElementById("lotInput").value = 1.00;
-      document.getElementById("slInput").value = (livePrices[symbol] - 0.01).toFixed(5);
-      document.getElementById("tpInput").value = (livePrices[symbol] + 0.01).toFixed(5);
-      document.getElementById("tradeModal").classList.add("active");
+    function openTradeModal(symbol, type) {
+      currentSymbol = symbol;
+      document.getElementById("tradeModal").classList.remove("hidden");
+      document.getElementById("tradeModalTitle").innerText = `${type} ${symbol}`;
+      document.getElementById("stopLossInput").value = (livePrice - 0.0020).toFixed(5);
+      document.getElementById("takeProfitInput").value = (livePrice + 0.0030).toFixed(5);
     }
 
-    function closeModal() {
-      document.getElementById("tradeModal").classList.remove("active");
+    function closeTradeModal() {
+      document.getElementById("tradeModal").classList.add("hidden");
     }
 
-    function placeTrade() {
-      const lot = parseFloat(document.getElementById("lotInput").value);
-      const sl = parseFloat(document.getElementById("slInput").value);
-      const tp = parseFloat(document.getElementById("tpInput").value);
-      const entry = parseFloat(livePrices[selectedSymbol]);
-      const cost = lot * 100;
+    function submitTrade() {
+      const lot = parseFloat(document.getElementById("lotSizeInput").value);
+      const sl = parseFloat(document.getElementById("stopLossInput").value);
+      const tp = parseFloat(document.getElementById("takeProfitInput").value);
 
-      if (cost > balance - margin) {
-        showInfo("Insufficient balance to open this trade.");
-        return;
-      }
+      const trade = {
+        symbol: currentSymbol,
+        lotSize: lot,
+        entry: livePrice,
+        stopLoss: sl,
+        takeProfit: tp,
+        time: new Date().toLocaleString()
+      };
 
-      const trade = { symbol: selectedSymbol, direction: tradeDirection, lot, sl, tp, entry, open: true };
+      let trades = JSON.parse(localStorage.getItem("novaTrades") || "[]");
       trades.push(trade);
-      margin += cost;
-      localStorage.setItem("trades", JSON.stringify(trades));
-      closeModal();
-      updateBalanceDisplay();
-      renderTrades();
-    }
-
-    function showInfo(msg) {
-      document.getElementById("infoText").innerText = msg;
-      document.getElementById("infoModal").classList.add("active");
-    }
-
-    function closeInfoModal() {
-      document.getElementById("infoModal").classList.remove("active");
-    }
-
-    function renderTrades() {
-      const list = document.getElementById("tradesList");
-      list.innerHTML = "";
-      trades.forEach((t, i) => {
-        if (!t.open) return;
-        list.innerHTML += `
-          <div class="bg-white p-3 rounded shadow flex justify-between">
-            <div>
-              <div class="font-semibold">${t.direction} ${t.symbol}</div>
-              <div class="text-xs">Entry: ${t.entry} | SL: ${t.sl} | TP: ${t.tp}</div>
-            </div>
-            <div class="text-sm font-semibold" id="live-${i}">Running...</div>
-          </div>
-        `;
-      });
-    }
-
-    function checkTrades() {
-      trades.forEach((t, i) => {
-        if (!t.open) return;
-        const price = livePrices[t.symbol];
-        if (!price) return;
-        if ((t.direction === "Buy" && price >= t.tp) || (t.direction === "Sell" && price <= t.tp)) {
-          const profit = t.lot * 100;
-          balance += profit;
-          margin -= t.lot * 100;
-          trades[i].open = false;
-          showInfo(`${t.symbol} TP hit. Profit: $${profit.toFixed(2)}`);
-        } else if ((t.direction === "Buy" && price <= t.sl) || (t.direction === "Sell" && price >= t.sl)) {
-          const loss = t.lot * 100;
-          balance -= loss;
-          margin -= t.lot * 100;
-          trades[i].open = false;
-          showInfo(`${t.symbol} SL hit. Loss: $${loss.toFixed(2)}`);
-        }
-      });
-      if (balance < 1) {
-        showInfo("Your account is blown.");
-        balance = 0;
-        trades.forEach(t => t.open = false);
-      }
-      localStorage.setItem("trades", JSON.stringify(trades));
-      updateBalanceDisplay();
-      renderTrades();
+      localStorage.setItem("novaTrades", JSON.stringify(trades));
+      closeTradeModal();
     }
 
     const socket = new WebSocket("wss://ws.finnhub.io?token=d17ug69r01qteuvq4ga0d17ug69r01qteuvq4gag");
-    socket.onopen = () => symbols.forEach(sym => socket.send(JSON.stringify({ type: "subscribe", symbol: `OANDA:${sym.replace("XAU", "XAU_")}` })));
 
-    socket.onmessage = e => {
-      const d = JSON.parse(e.data);
-      if (d.type === "trade") {
-        d.data.forEach(t => {
-          const sym = t.s.replace("OANDA:", "").replace("_", "");
-          livePrices[sym] = parseFloat(t.p).toFixed(5);
-          const buyEl = document.getElementById("buy-" + sym);
-          const sellEl = document.getElementById("sell-" + sym);
-          const chgEl = document.getElementById("chg-" + sym);
-          if (buyEl) buyEl.innerText = livePrices[sym];
-          if (sellEl) sellEl.innerText = (parseFloat(t.p) - 0.0002).toFixed(5);
-          if (chgEl) chgEl.innerText = `${t.p}`;
-        });
-        checkTrades();
-      }
+    const symbols = {
+      "EURUSD": "OANDA:EUR_USD"
     };
 
-    displayPrices();
-    updateBalanceDisplay();
-    renderTrades();
+    const prices = {};
+
+    socket.addEventListener("open", () => {
+      for (let key in symbols) {
+        socket.send(JSON.stringify({ type: "subscribe", symbol: symbols[key] }));
+      }
+    });
+
+    socket.addEventListener("message", event => {
+      const data = JSON.parse(event.data);
+      if (data.type === "trade") {
+        data.data.forEach(trade => {
+          const full = trade.s.replace("OANDA:", "");
+          const id = full.replace("_", "");
+          const price = parseFloat(trade.p).toFixed(5);
+
+          if (!prices[id]) prices[id] = { last: price };
+
+          const change = price - prices[id].last;
+          const percentChange = ((change / prices[id].last) * 100).toFixed(2);
+
+          prices[id].last = price;
+
+          const sellEl = document.getElementById(`sell-${id}`);
+          const buyEl = document.getElementById(`buy-${id}`);
+          const changeEl = document.getElementById(`change-${id}`);
+
+          if (sellEl) sellEl.textContent = `${(price - 0.0002).toFixed(5)} Sell`;
+          if (buyEl) buyEl.textContent = `Buy ${price}`;
+          if (changeEl) {
+            changeEl.textContent = `${change >= 0 ? "↑" : "↓"} ${Math.abs(percentChange)}%`;
+            changeEl.style.color = change >= 0 ? "green" : "red";
+          }
+
+          if (currentSymbol === id) {
+            document.getElementById("liveTradePrice").innerText = price;
+            livePrice = parseFloat(price);
+          }
+        });
+      }
+    });
+
+    socket.addEventListener("close", () => {
+      console.warn("WebSocket closed. Reconnecting in 5 seconds...");
+      setTimeout(() => location.reload(), 5000);
+    });
   </script>
+
 </body>
 </html>
