@@ -68,12 +68,17 @@
 
     .sell {
       color: red;
-      cursor: pointer;
     }
 
     .buy {
       color: green;
-      cursor: pointer;
+    }
+
+    .chart-placeholder {
+      height: 40px;
+      background: #e0e0e0;
+      border-radius: 6px;
+      margin-bottom: 12px;
     }
 
     .bottom-nav {
@@ -108,91 +113,66 @@
   <!-- Balance Card -->
   <div class="balance-card">
     <div class="title">Total</div>
-    <div class="amount" id="balanceDisplay">$5000.00</div>
-    <div class="details" id="marginDisplay">Margin: $0</div>
-    <div class="details" id="equityDisplay">Equity: $5000</div>
-    <div class="details" id="freeDisplay">Free Funds: $5000</div>
+    <div class="amount">$5,000.00</div>
+    <div class="details">Margin: $1,200</div>
+    <div class="details">Equity: $5,100</div>
+    <div class="details">Free Funds: $3,900</div>
   </div>
 
-  <!-- Market Cards -->
+  <!-- 💹 Market Cards -->
   <div class="market-card">
     <div class="market-header">
       <span>EURUSD ⭐</span>
       <span id="change-EURUSD">Loading...</span>
     </div>
     <div class="market-actions">
-      <div class="sell" id="sell-EURUSD" onclick="openTradeModal('EURUSD', 'Sell')">Loading...</div>
-      <div class="buy" id="buy-EURUSD" onclick="openTradeModal('EURUSD', 'Buy')">Loading...</div>
+      <div class="sell" id="sell-EURUSD">Loading...</div>
+      <div class="buy" id="buy-EURUSD">Loading...</div>
     </div>
   </div>
 
-  <!-- Trade Modal -->
-  <div id="tradeModal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50">
-    <div class="bg-white w-11/12 max-w-md p-6 rounded-lg shadow-lg text-black">
-      <h2 class="text-lg font-semibold mb-4" id="tradeModalTitle">Place Trade</h2>
-      <div class="mb-3">
-        <label class="block text-sm mb-1">Live Price</label>
-        <div id="liveTradePrice" class="text-xl font-bold text-green-600">Loading...</div>
-      </div>
-      <div class="mb-3">
-        <label class="block text-sm mb-1">Lot Size (0.01–50)</label>
-        <input id="lotSizeInput" type="number" min="0.01" max="50" step="0.01" value="1.00" class="w-full px-3 py-2 border rounded">
-      </div>
-      <div class="mb-3">
-        <label class="block text-sm mb-1">Stop Loss</label>
-        <input id="stopLossInput" type="number" class="w-full px-3 py-2 border rounded">
-      </div>
-      <div class="mb-3">
-        <label class="block text-sm mb-1">Take Profit</label>
-        <input id="takeProfitInput" type="number" class="w-full px-3 py-2 border rounded">
-      </div>
-      <div class="flex justify-between mt-6">
-        <button onclick="closeTradeModal()" class="px-4 py-2 bg-gray-500 text-white rounded">Cancel</button>
-        <button onclick="submitTrade()" class="px-4 py-2 bg-green-600 text-white rounded">Place Trade</button>
-      </div>
+  <div class="market-card">
+    <div class="market-header">
+      <span>GBPUSD ⭐</span>
+      <span id="change-GBPUSD">Loading...</span>
+    </div>
+    <div class="market-actions">
+      <div class="sell" id="sell-GBPUSD">Loading...</div>
+      <div class="buy" id="buy-GBPUSD">Loading...</div>
     </div>
   </div>
 
+  <div class="market-card">
+    <div class="market-header">
+      <span>USDJPY ⭐</span>
+      <span id="change-USDJPY">Loading...</span>
+    </div>
+    <div class="market-actions">
+      <div class="sell" id="sell-USDJPY">Loading...</div>
+      <div class="buy" id="buy-USDJPY">Loading...</div>
+    </div>
+  </div>
+
+  <div class="market-card">
+    <div class="market-header">
+      <span>USDCAD ⭐</span>
+      <span id="change-USDCAD">Loading...</span>
+    </div>
+    <div class="market-actions">
+      <div class="sell" id="sell-USDCAD">Loading...</div>
+      <div class="buy" id="buy-USDCAD">Loading...</div>
+    </div>
+  </div>
+
+  <!-- 📈 Live WebSocket Prices -->
   <script>
-    let currentSymbol = "";
-    let livePrice = 0;
-
-    function openTradeModal(symbol, type) {
-      currentSymbol = symbol;
-      document.getElementById("tradeModal").classList.remove("hidden");
-      document.getElementById("tradeModalTitle").innerText = `${type} ${symbol}`;
-      document.getElementById("stopLossInput").value = (livePrice - 0.0020).toFixed(5);
-      document.getElementById("takeProfitInput").value = (livePrice + 0.0030).toFixed(5);
-    }
-
-    function closeTradeModal() {
-      document.getElementById("tradeModal").classList.add("hidden");
-    }
-
-    function submitTrade() {
-      const lot = parseFloat(document.getElementById("lotSizeInput").value);
-      const sl = parseFloat(document.getElementById("stopLossInput").value);
-      const tp = parseFloat(document.getElementById("takeProfitInput").value);
-
-      const trade = {
-        symbol: currentSymbol,
-        lotSize: lot,
-        entry: livePrice,
-        stopLoss: sl,
-        takeProfit: tp,
-        time: new Date().toLocaleString()
-      };
-
-      let trades = JSON.parse(localStorage.getItem("novaTrades") || "[]");
-      trades.push(trade);
-      localStorage.setItem("novaTrades", JSON.stringify(trades));
-      closeTradeModal();
-    }
-
     const socket = new WebSocket("wss://ws.finnhub.io?token=d17ug69r01qteuvq4ga0d17ug69r01qteuvq4gag");
 
     const symbols = {
-      "EURUSD": "OANDA:EUR_USD"
+      "EURUSD": "OANDA:EUR_USD",
+      "GBPUSD": "OANDA:GBP_USD",
+      "USDJPY": "OANDA:USD_JPY",
+      "USDCAD": "OANDA:USD_CAD"
     };
 
     const prices = {};
@@ -227,11 +207,6 @@
           if (changeEl) {
             changeEl.textContent = `${change >= 0 ? "↑" : "↓"} ${Math.abs(percentChange)}%`;
             changeEl.style.color = change >= 0 ? "green" : "red";
-          }
-
-          if (currentSymbol === id) {
-            document.getElementById("liveTradePrice").innerText = price;
-            livePrice = parseFloat(price);
           }
         });
       }
