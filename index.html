@@ -18,6 +18,13 @@
   <!-- Page Content -->
   <div id="pageContent" class="pt-[120px] pb-[80px]"></div>
 
+  <!-- Trade Modal -->
+<div id="tradeModal" class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden flex items-center justify-center">
+  <div class="bg-white w-full max-w-md mx-2 rounded-2xl overflow-y-auto max-h-[90vh] p-4">
+    <!-- Modal contents... -->
+  </div>
+</div>
+
   <!-- Bottom Navigation -->
   <div class="fixed bottom-0 left-0 right-0 z-50 bg-gray-100 flex justify-around py-3 rounded-t-2xl border-t">
     <button onclick="loadPage('home')" id="tab-home" class="tab-btn flex flex-col items-center text-green-400">
@@ -133,7 +140,8 @@
                 <div class="text-green-600" id="buy-${key}">Loading...</div>
               </div>
             `;
-            container.appendChild(card);
+            card.onclick = () => openTradeModal(id, sellPrice, price);
+container.appendChild(card);
           }
         }
       });
@@ -171,5 +179,39 @@
       loadPage("home");
     });
   </script>
+<script>
+  function openTradeModal(pair, sellRate, buyRate) {
+  document.getElementById("tradeModal").classList.remove("hidden");
+  document.getElementById("modalPair").textContent = pair;
+  document.getElementById("sellRate").textContent = sellRate;
+  document.getElementById("buyRate").textContent = buyRate;
+  document.getElementById("buyBtn").textContent = `Buy at ${buyRate}`;
+  document.getElementById("stopLossRate").value = sellRate;
+  document.getElementById("takeProfitRate").value = buyRate;
+  calculateMargin();
+}
+
+function closeTradeModal() {
+  document.getElementById("tradeModal").classList.add("hidden");
+}
+
+function changeLots(delta) {
+  const lotsInput = document.getElementById("lots");
+  let lots = parseFloat(lotsInput.value);
+  lots += delta;
+  if (lots < 0.01) lots = 0.01;
+  lotsInput.value = lots.toFixed(2);
+  calculateMargin();
+}
+
+function calculateMargin() {
+  const lots = parseFloat(document.getElementById("lots").value);
+  const units = lots * 100000;
+  const margin = lots * 37388.4; // Example value
+  document.getElementById("amount").textContent = `KSh${margin.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+  document.getElementById("units").textContent = `Units: ${units.toLocaleString()}`;
+  document.getElementById("marginRequired").textContent = `KSh${margin.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+}
+</script>
 </body>
 </html>
