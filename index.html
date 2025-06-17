@@ -8,7 +8,7 @@
 </head>
 <body class="bg-gray-100 text-sm text-gray-900">
 
-  <!-- Top Header -->
+  <!-- Top Fixed Header -->
   <div class="fixed top-0 left-0 right-0 z-50 bg-gray-100">
     <div class="p-4">
       <div class="text-2xl font-bold text-black">NovaFX</div>
@@ -38,27 +38,14 @@
     </button>
   </div>
 
-  <!-- Modals -->
-  <div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-40">
-    <div class="bg-white rounded-xl p-6 w-80 max-w-full text-center space-y-4">
-      <div id="modalTitle" class="text-lg font-semibold">Modal Title</div>
-      <div id="modalMessage" class="text-sm text-gray-600">Modal message here...</div>
-      <button onclick="closeModal()" class="px-4 py-2 bg-green-600 text-white rounded-full">OK</button>
-    </div>
-  </div>
-
-  <!-- Templates -->
+  <!-- Page Templates -->
   <script type="text/template" id="template-home">
     <div class="bg-green-600 text-white mx-4 rounded-2xl p-4">
       <div class="opacity-80 text-xs">Total</div>
-      <div class="text-3xl font-bold" id="homeBalance">KSh0.00</div>
-      <div class="text-xs" id="homeMargin">Margin: KSh0.00</div>
-      <div class="text-xs" id="homeEquity">Equity: KSh0.00</div>
-      <div class="text-xs" id="homeFree">Free Funds: KSh0.00</div>
-    </div>
-    <div class="p-4">
-      <button onclick="showDepositModal()" class="w-full bg-green-600 text-white rounded-xl py-2 mb-2">Deposit</button>
-      <button onclick="showWithdrawModal()" class="w-full bg-yellow-600 text-white rounded-xl py-2">Withdraw</button>
+      <div class="text-3xl font-bold">$5,000.00</div>
+      <div class="text-xs">Margin: $1,200</div>
+      <div class="text-xs">Equity: $5,100</div>
+      <div class="text-xs">Free Funds: $3,900</div>
     </div>
     <div id="markets" class="p-4"></div>
   </script>
@@ -74,148 +61,115 @@
   </script>
 
   <script type="text/template" id="template-trades">
-    <div class="p-4" id="tradesList"></div>
+    <div class="p-4 text-center text-gray-500">No trades yet. Start trading to see your open positions here.</div>
   </script>
 
   <script type="text/template" id="template-user">
     <div class="p-4 text-center text-gray-500">User profile and settings coming soon.</div>
   </script>
 
+  <!-- Script -->
   <script>
     const pages = ["home", "wallet", "trades", "user"];
-
-    function showModal(title, message) {
-      document.getElementById("modalTitle").textContent = title || "Notice";
-      document.getElementById("modalMessage").textContent = message || "Something happened.";
-      document.getElementById("modal").classList.remove("hidden");
-      document.getElementById("modal").classList.add("flex");
-    }
-
-    function closeModal() {
-      document.getElementById("modal").classList.add("hidden");
-      document.getElementById("modal").classList.remove("flex");
-    }
-
-    function showDepositModal() {
-      const amount = prompt("Enter deposit amount");
-      if (amount && !isNaN(amount)) {
-        let bal = parseFloat(localStorage.getItem("balance") || 0);
-        bal += parseFloat(amount);
-        localStorage.setItem("balance", bal);
-        localStorage.setItem("equity", bal);
-        showModal("Deposit Successful", `You deposited KSh${parseFloat(amount).toLocaleString()}`);
-        loadPage("home");
-      }
-    }
-
-    function showWithdrawModal() {
-      const amount = prompt("Enter withdrawal amount");
-      let bal = parseFloat(localStorage.getItem("balance") || 0);
-      if (amount && !isNaN(amount) && parseFloat(amount) <= bal) {
-        bal -= parseFloat(amount);
-        localStorage.setItem("balance", bal);
-        localStorage.setItem("equity", bal);
-        showModal("Withdrawal Successful", `You withdrew KSh${parseFloat(amount).toLocaleString()}`);
-        loadPage("home");
-      } else {
-        showModal("Failed", `Insufficient balance or invalid amount`);
-      }
-    }
 
     function loadPage(page) {
       const tpl = document.getElementById(`template-${page}`);
       document.getElementById("pageContent").innerHTML = tpl ? tpl.innerHTML : "<div class='p-4'>Coming soon...</div>";
+
       pages.forEach(p => {
         const btn = document.getElementById(`tab-${p}`);
-        btn?.classList.toggle("text-green-400", p === page);
-        btn?.classList.toggle("text-black", p !== page);
+        if (btn) btn.classList.toggle("text-green-400", p === page);
+        if (btn) btn.classList.toggle("text-black", p !== page);
       });
 
-      if (page === "wallet") updateWallet();
+      if (page === "wallet") {
+        const balance = localStorage.getItem("balance") || 5000;
+        const equity = localStorage.getItem("equity") || 5100;
+        const margin = localStorage.getItem("margin") || 1200;
+        const free = equity - margin;
+        const pl = equity - balance;
+
+        const format = val => "KSh" + parseFloat(val).toLocaleString("en-KE", { minimumFractionDigits: 2 });
+
+        document.getElementById("walletBalance").textContent = format(balance);
+        document.getElementById("walletPL").textContent = format(pl);
+        document.getElementById("remainingMargin").textContent = format(free);
+        document.getElementById("marginUsed").textContent = format(margin);
+      }
+
       if (page === "home") initMarkets();
-      if (page === "trades") showTrades();
-    }
-
-    function updateWallet() {
-      const balance = parseFloat(localStorage.getItem("balance") || 0);
-      const equity = parseFloat(localStorage.getItem("equity") || 0);
-      const margin = parseFloat(localStorage.getItem("margin") || 0);
-      const free = equity - margin;
-      const pl = equity - balance;
-      const fmt = val => "KSh" + parseFloat(val).toLocaleString("en-KE", { minimumFractionDigits: 2 });
-      document.getElementById("walletBalance").textContent = fmt(balance);
-      document.getElementById("walletPL").textContent = fmt(pl);
-      document.getElementById("remainingMargin").textContent = fmt(free);
-      document.getElementById("marginUsed").textContent = fmt(margin);
-    }
-
-    function showTrades() {
-      const trades = JSON.parse(localStorage.getItem("trades") || "[]");
-      const wrapper = document.getElementById("tradesList");
-      if (!trades.length) return wrapper.innerHTML = `<div class='text-center text-gray-500'>No trades yet.</div>`;
-      wrapper.innerHTML = trades.map(t => `
-        <div class="bg-white p-3 rounded-xl shadow mb-2">
-          <div class="font-bold">${t.symbol}</div>
-          <div class="text-xs">Lot: ${t.lot} | SL: ${t.sl} | TP: ${t.tp}</div>
-          <div class="text-xs text-gray-500">Price: ${t.price}</div>
-        </div>`).join("");
     }
 
     function initMarkets() {
       const symbols = {
-        "EURUSD": "OANDA:EUR_USD", "GBPUSD": "OANDA:GBP_USD", "USDJPY": "OANDA:USD_JPY",
-        "USDCHF": "OANDA:USD_CHF", "USDCAD": "OANDA:USD_CAD", "AUDUSD": "OANDA:AUD_USD",
-        "NZDUSD": "OANDA:NZD_USD", "EURJPY": "OANDA:EUR_JPY", "GBPJPY": "OANDA:GBP_JPY",
+        "EURUSD": "OANDA:EUR_USD",
+        "GBPUSD": "OANDA:GBP_USD",
+        "USDJPY": "OANDA:USD_JPY",
+        "USDCHF": "OANDA:USD_CHF",
+        "USDCAD": "OANDA:USD_CAD",
+        "AUDUSD": "OANDA:AUD_USD",
+        "NZDUSD": "OANDA:NZD_USD",
+        "EURJPY": "OANDA:EUR_JPY",
+        "GBPJPY": "OANDA:GBP_JPY",
         "XAUUSD": "OANDA:XAU_USD"
       };
       const socket = new WebSocket("wss://ws.finnhub.io?token=d17ug69r01qteuvq4ga0d17ug69r01qteuvq4gag");
-      const container = document.getElementById("markets");
-      container.innerHTML = "";
+      const prices = {};
 
       socket.addEventListener("open", () => {
-        for (let k in symbols) {
-          socket.send(JSON.stringify({ type: "subscribe", symbol: symbols[k] }));
-          const div = document.createElement("div");
-          div.className = "bg-white rounded-xl shadow p-4 mb-4";
-          div.innerHTML = `
-            <div class="flex justify-between font-semibold mb-2">
-              <span>${k}</span><span id="chg-${k}">--</span>
-            </div>
-            <div class="flex justify-between">
-              <div id="sell-${k}" class="text-red-600">--</div>
-              <div id="buy-${k}" class="text-green-600">--</div>
-            </div>`;
-          container.appendChild(div);
+        for (let key in symbols) {
+          socket.send(JSON.stringify({ type: "subscribe", symbol: symbols[key] }));
+          const container = document.getElementById("markets");
+          if (container) {
+            const card = document.createElement("div");
+            card.className = "bg-white rounded-xl shadow p-4 mb-4";
+            card.innerHTML = `
+              <div class="flex justify-between font-semibold mb-2">
+                <span>${key}</span>
+                <span id="change-${key}">Loading...</span>
+              </div>
+              <div class="flex justify-between">
+                <div class="text-red-600" id="sell-${key}">Loading...</div>
+                <div class="text-green-600" id="buy-${key}">Loading...</div>
+              </div>
+            `;
+            container.appendChild(card);
+          }
         }
       });
 
-      const prices = {};
-      socket.addEventListener("message", e => {
-        const d = JSON.parse(e.data);
-        if (d.type === "trade") {
-          d.data.forEach(trade => {
-            const key = trade.s.replace("OANDA:", "");
+      socket.addEventListener("message", event => {
+        const data = JSON.parse(event.data);
+        if (data.type === "trade") {
+          data.data.forEach(trade => {
+            const full = trade.s.replace("OANDA:", "");
+            const id = full.replace("_", "");
             const price = parseFloat(trade.p).toFixed(5);
-            const id = key.replace("_", "");
-            const change = prices[id] ? price - prices[id] : 0;
-            const percent = prices[id] ? ((change / prices[id]) * 100).toFixed(2) : "0.00";
-            prices[id] = price;
-            document.getElementById(`buy-${key}`).textContent = `Buy ${price}`;
-            document.getElementById(`sell-${key}`).textContent = `${(price - 0.0002).toFixed(5)} Sell`;
-            document.getElementById(`chg-${key}`).textContent = `${change >= 0 ? "↑" : "↓"} ${Math.abs(percent)}%`;
-            document.getElementById(`chg-${key}`).className = change >= 0 ? "text-green-600" : "text-red-600";
+
+            if (!prices[id]) prices[id] = { last: price };
+            const sellPrice = (price - 0.0002).toFixed(5);
+            const change = price - prices[id].last;
+            const percent = ((change / prices[id].last) * 100).toFixed(2);
+            prices[id].last = price;
+
+            const update = (id, val, cls = "") => {
+              const el = document.getElementById(id);
+              if (el && el.textContent !== val) {
+                el.textContent = val;
+                if (cls) el.className = `font-bold ${cls}`;
+              }
+            };
+            update(`sell-${id}`, `${sellPrice} Sell`);
+            update(`buy-${id}`, `Buy ${price}`);
+            update(`change-${id}`, `${change >= 0 ? "↑" : "↓"} ${Math.abs(percent)}%`, change >= 0 ? "text-green-600" : "text-red-600");
           });
         }
       });
     }
 
     window.addEventListener("DOMContentLoaded", () => {
-      if (!localStorage.getItem("balance")) localStorage.setItem("balance", 0);
-      if (!localStorage.getItem("equity")) localStorage.setItem("equity", 0);
-      if (!localStorage.getItem("margin")) localStorage.setItem("margin", 0);
       loadPage("home");
     });
   </script>
-
 </body>
 </html>
