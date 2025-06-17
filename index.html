@@ -3,16 +3,43 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NovaFX - Live Forex Market</title>
+  <title>NovaFX</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 pt-[200px] pb-[80px] text-sm text-gray-900">
+<body class="bg-gray-100 text-sm text-gray-900">
 
-  <!-- Fixed Silent Header -->
+  <!-- Top Fixed Header -->
   <div class="fixed top-0 left-0 right-0 z-50 bg-gray-100">
     <div class="p-4">
       <div class="text-2xl font-bold text-black">NovaFX</div>
     </div>
+  </div>
+
+  <!-- Page Content -->
+  <div id="pageContent" class="pt-[120px] pb-[80px]"></div>
+
+  <!-- Bottom Navigation -->
+  <div class="fixed bottom-0 left-0 right-0 z-50 bg-gray-100 flex justify-around py-3 rounded-t-2xl border-t">
+    <button onclick="loadPage('home')" id="tab-home" class="tab-btn flex flex-col items-center text-green-400">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Home</span>
+    </button>
+    <button onclick="loadPage('trades')" id="tab-trades" class="tab-btn flex flex-col items-center text-black">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
+      <span>Trades</span>
+    </button>
+    <button onclick="loadPage('wallet')" id="tab-wallet" class="tab-btn flex flex-col items-center text-black">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h0M2 9.5h20"/></svg>
+      <span>Wallet</span>
+    </button>
+    <button onclick="loadPage('user')" id="tab-user" class="tab-btn flex flex-col items-center text-black">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="10" r="3"/><circle cx="12" cy="12" r="10"/></svg>
+      <span>User</span>
+    </button>
+  </div>
+
+  <!-- Page Templates -->
+  <script type="text/template" id="template-home">
     <div class="bg-green-600 text-white mx-4 rounded-2xl p-4">
       <div class="opacity-80 text-xs">Total</div>
       <div class="text-3xl font-bold">$5,000.00</div>
@@ -20,109 +47,129 @@
       <div class="text-xs">Equity: $5,100</div>
       <div class="text-xs">Free Funds: $3,900</div>
     </div>
-  </div>
+    <div id="markets" class="p-4"></div>
+  </script>
 
-  <!-- Market Cards -->
-  <div id="markets">
-    <!-- Cards inserted here -->
-  </div>
+  <script type="text/template" id="template-wallet">
+    <div class="bg-white rounded-xl mx-4 mt-4 p-4 shadow space-y-3">
+      <div class="flex justify-between"><span>Trading Account</span><span>57269468</span></div>
+      <div class="flex justify-between"><span>Balance</span><span id="walletBalance">KSh0.00</span></div>
+      <div class="flex justify-between"><span>P&L</span><span id="walletPL">KSh0.00</span></div>
+      <div class="flex justify-between"><span>Remaining Margin</span><span id="remainingMargin">KSh0.00</span></div>
+      <div class="flex justify-between"><span>Margin Used</span><span id="marginUsed">KSh0.00</span></div>
+    </div>
+  </script>
 
-  <!-- Fixed Bottom Navigation -->
-  <div class="fixed bottom-0 left-0 right-0 z-50 bg-gray-100 flex justify-around py-3 rounded-t-2xl border-t">
-    <button onclick="setActive(this)" class="flex flex-col items-center text-black">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-      <span>Home</span>
-    </button>
-    <button onclick="setActive(this)" class="flex flex-col items-center text-black">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
-      <span>Trades</span>
-    </button>
-    <button onclick="setActive(this)" class="flex flex-col items-center text-black">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h0M2 9.5h20"/></svg>
-      <span>Wallet</span>
-    </button>
-    <button onclick="setActive(this)" class="flex flex-col items-center text-black">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/><circle cx="12" cy="10" r="3"/><circle cx="12" cy="12" r="10"/></svg>
-      <span>User</span>
-    </button>
-  </div>
+  <script type="text/template" id="template-trades">
+    <div class="p-4 text-center text-gray-500">No trades yet. Start trading to see your open positions here.</div>
+  </script>
 
-  <!-- WebSocket Prices -->
- <script>
-  const symbols = {
-    "EURUSD": "OANDA:EUR_USD",
-    "GBPUSD": "OANDA:GBP_USD",
-    "USDJPY": "OANDA:USD_JPY",
-    "USDCHF": "OANDA:USD_CHF",
-    "USDCAD": "OANDA:USD_CAD",
-    "AUDUSD": "OANDA:AUD_USD",
-    "NZDUSD": "OANDA:NZD_USD",
-    "EURJPY": "OANDA:EUR_JPY",
-    "GBPJPY": "OANDA:GBP_JPY",
-    "XAUUSD": "OANDA:XAU_USD"
-  };
+  <script type="text/template" id="template-user">
+    <div class="p-4 text-center text-gray-500">User profile and settings coming soon.</div>
+  </script>
 
-  const socket = new WebSocket("wss://ws.finnhub.io?token=d17ug69r01qteuvq4ga0d17ug69r01qteuvq4gag");
-  const prices = {};
+  <!-- Script -->
+  <script>
+    const pages = ["home", "wallet", "trades", "user"];
 
-  socket.addEventListener("open", () => {
-    for (let key in symbols) {
-      socket.send(JSON.stringify({ type: "subscribe", symbol: symbols[key] }));
-      createMarketCard(key);
+    function loadPage(page) {
+      const tpl = document.getElementById(`template-${page}`);
+      document.getElementById("pageContent").innerHTML = tpl ? tpl.innerHTML : "<div class='p-4'>Coming soon...</div>";
+
+      pages.forEach(p => {
+        const btn = document.getElementById(`tab-${p}`);
+        if (btn) btn.classList.toggle("text-green-400", p === page);
+        if (btn) btn.classList.toggle("text-black", p !== page);
+      });
+
+      if (page === "wallet") {
+        const balance = localStorage.getItem("balance") || 5000;
+        const equity = localStorage.getItem("equity") || 5100;
+        const margin = localStorage.getItem("margin") || 1200;
+        const free = equity - margin;
+        const pl = equity - balance;
+
+        const format = val => "KSh" + parseFloat(val).toLocaleString("en-KE", { minimumFractionDigits: 2 });
+
+        document.getElementById("walletBalance").textContent = format(balance);
+        document.getElementById("walletPL").textContent = format(pl);
+        document.getElementById("remainingMargin").textContent = format(free);
+        document.getElementById("marginUsed").textContent = format(margin);
+      }
+
+      if (page === "home") initMarkets();
     }
-  });
 
-  socket.addEventListener("message", event => {
-    const data = JSON.parse(event.data);
-    if (data.type === "trade") {
-      data.data.forEach(trade => {
-        const full = trade.s.replace("OANDA:", "");
-        const id = full.replace("_", "");
-        const price = parseFloat(trade.p).toFixed(5);
+    function initMarkets() {
+      const symbols = {
+        "EURUSD": "OANDA:EUR_USD",
+        "GBPUSD": "OANDA:GBP_USD",
+        "USDJPY": "OANDA:USD_JPY",
+        "USDCHF": "OANDA:USD_CHF",
+        "USDCAD": "OANDA:USD_CAD",
+        "AUDUSD": "OANDA:AUD_USD",
+        "NZDUSD": "OANDA:NZD_USD",
+        "EURJPY": "OANDA:EUR_JPY",
+        "GBPJPY": "OANDA:GBP_JPY",
+        "XAUUSD": "OANDA:XAU_USD"
+      };
+      const socket = new WebSocket("wss://ws.finnhub.io?token=d17ug69r01qteuvq4ga0d17ug69r01qteuvq4gag");
+      const prices = {};
 
-        if (!prices[id]) prices[id] = { last: price };
+      socket.addEventListener("open", () => {
+        for (let key in symbols) {
+          socket.send(JSON.stringify({ type: "subscribe", symbol: symbols[key] }));
+          const container = document.getElementById("markets");
+          if (container) {
+            const card = document.createElement("div");
+            card.className = "bg-white rounded-xl shadow p-4 mb-4";
+            card.innerHTML = `
+              <div class="flex justify-between font-semibold mb-2">
+                <span>${key}</span>
+                <span id="change-${key}">Loading...</span>
+              </div>
+              <div class="flex justify-between">
+                <div class="text-red-600" id="sell-${key}">Loading...</div>
+                <div class="text-green-600" id="buy-${key}">Loading...</div>
+              </div>
+            `;
+            container.appendChild(card);
+          }
+        }
+      });
 
-        const sellPrice = (price - 0.0002).toFixed(5);
-        const change = price - prices[id].last;
-        const percent = ((change / prices[id].last) * 100).toFixed(2);
-        prices[id].last = price;
+      socket.addEventListener("message", event => {
+        const data = JSON.parse(event.data);
+        if (data.type === "trade") {
+          data.data.forEach(trade => {
+            const full = trade.s.replace("OANDA:", "");
+            const id = full.replace("_", "");
+            const price = parseFloat(trade.p).toFixed(5);
 
-        updateIfChanged(`sell-${id}`, `${sellPrice} Sell`);
-        updateIfChanged(`buy-${id}`, `Buy ${price}`);
-        updateIfChanged(`change-${id}`, `${change >= 0 ? "↑" : "↓"} ${Math.abs(percent)}%`, change >= 0 ? "text-green-600" : "text-red-600");
+            if (!prices[id]) prices[id] = { last: price };
+            const sellPrice = (price - 0.0002).toFixed(5);
+            const change = price - prices[id].last;
+            const percent = ((change / prices[id].last) * 100).toFixed(2);
+            prices[id].last = price;
+
+            const update = (id, val, cls = "") => {
+              const el = document.getElementById(id);
+              if (el && el.textContent !== val) {
+                el.textContent = val;
+                if (cls) el.className = `font-bold ${cls}`;
+              }
+            };
+            update(`sell-${id}`, `${sellPrice} Sell`);
+            update(`buy-${id}`, `Buy ${price}`);
+            update(`change-${id}`, `${change >= 0 ? "↑" : "↓"} ${Math.abs(percent)}%`, change >= 0 ? "text-green-600" : "text-red-600");
+          });
+        }
       });
     }
-  });
 
-  function updateIfChanged(id, newText, newClass = null) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    if (el.textContent !== newText) {
-      el.textContent = newText;
-      if (newClass) {
-        el.className = `font-bold ${newClass}`;
-      }
-    }
-  }
-
-  function createMarketCard(id) {
-    const container = document.getElementById("markets");
-    const card = document.createElement("div");
-    card.className = "bg-white rounded-xl shadow p-4 mx-2 mb-4 min-w-[160px]";
-    card.innerHTML = `
-      <div class="flex justify-between font-semibold mb-2">
-        <span>${id}</span>
-        <span id="change-${id}">Loading...</span>
-      </div>
-      <div class="flex justify-between">
-        <div class="text-red-600" id="sell-${id}">Loading...</div>
-        <div class="text-green-600" id="buy-${id}">Loading...</div>
-      </div>
-    `;
-    container.appendChild(card);
-  }
-</script>
-
-
+    window.addEventListener("DOMContentLoaded", () => {
+      loadPage("home");
+    });
+  </script>
 </body>
 </html>
