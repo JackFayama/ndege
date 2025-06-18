@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>NovaFX</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -33,12 +33,12 @@
       <span>Wallet</span>
     </button>
     <button onclick="loadPage('user')" id="tab-user" class="tab-btn flex flex-col items-center text-black">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/><circle cx="12" cy="10" r="3"/><circle cx="12" cy="12" r="10"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/><circle cx="12" cy="10" r="3"/><circle cx="12" cy="12" r="10"/></svg>
       <span>User</span>
     </button>
   </div>
 
-  <!-- Page Templates -->
+  <!-- Templates -->
   <script type="text/template" id="template-home">
     <div class="bg-green-600 text-white mx-4 rounded-2xl p-4">
       <div class="opacity-80 text-xs">Total</div>
@@ -58,6 +58,10 @@
       <div class="flex justify-between"><span>Remaining Margin</span><span id="remainingMargin">KSh0.00</span></div>
       <div class="flex justify-between"><span>Margin Used</span><span id="marginUsed">KSh0.00</span></div>
     </div>
+    <div class="flex justify-center gap-4 mt-4">
+      <button onclick="openModal('Deposit')" class="bg-green-600 text-white px-6 py-2 rounded-full shadow">Deposit</button>
+      <button onclick="openModal('Withdraw')" class="bg-red-600 text-white px-6 py-2 rounded-full shadow">Withdraw</button>
+    </div>
   </script>
 
   <script type="text/template" id="template-trades">
@@ -68,9 +72,20 @@
     <div class="p-4 text-center text-gray-500">User profile and settings coming soon.</div>
   </script>
 
+  <!-- Modal -->
+  <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 items-center justify-center hidden z-50">
+    <div class="bg-white rounded-xl shadow p-6 w-80 space-y-4 text-center">
+      <h2 id="modalTitle" class="text-lg font-bold"></h2>
+      <input id="modalAmount" type="number" placeholder="Enter amount" class="w-full border rounded px-3 py-2 text-center"/>
+      <button id="modalConfirm" class="bg-green-600 text-white px-4 py-2 rounded w-full">Confirm</button>
+      <button onclick="closeModal()" class="text-sm text-gray-500 mt-2">Cancel</button>
+    </div>
+  </div>
+
   <!-- Script -->
   <script>
     const pages = ["home", "wallet", "trades", "user"];
+    let modalMode = "";
 
     function loadPage(page) {
       const tpl = document.getElementById(`template-${page}`);
@@ -82,23 +97,61 @@
         if (btn) btn.classList.toggle("text-black", p !== page);
       });
 
-      if (page === "wallet") {
-        const balance = localStorage.getItem("balance") || 5000;
-        const equity = localStorage.getItem("equity") || 5100;
-        const margin = localStorage.getItem("margin") || 1200;
-        const free = equity - margin;
-        const pl = equity - balance;
-
-        const format = val => "KSh" + parseFloat(val).toLocaleString("en-KE", { minimumFractionDigits: 2 });
-
-        document.getElementById("walletBalance").textContent = format(balance);
-        document.getElementById("walletPL").textContent = format(pl);
-        document.getElementById("remainingMargin").textContent = format(free);
-        document.getElementById("marginUsed").textContent = format(margin);
-      }
-
+      if (page === "wallet") updateWalletUI();
       if (page === "home") initMarkets();
     }
+
+    function updateWalletUI() {
+      const balance = parseFloat(localStorage.getItem("balance") || 5000);
+      const equity = parseFloat(localStorage.getItem("equity") || 5100);
+      const margin = parseFloat(localStorage.getItem("margin") || 1200);
+      const free = equity - margin;
+      const pl = equity - balance;
+
+      const format = val => "KSh" + parseFloat(val).toLocaleString("en-KE", { minimumFractionDigits: 2 });
+
+      document.getElementById("walletBalance").textContent = format(balance);
+      document.getElementById("walletPL").textContent = format(pl);
+      document.getElementById("remainingMargin").textContent = format(free);
+      document.getElementById("marginUsed").textContent = format(margin);
+    }
+
+    function openModal(mode) {
+      modalMode = mode;
+      document.getElementById("modalTitle").textContent = `${mode} Funds`;
+      document.getElementById("modalAmount").value = "";
+      document.getElementById("modal").classList.remove("hidden");
+      document.getElementById("modal").classList.add("flex");
+    }
+
+    function closeModal() {
+      document.getElementById("modal").classList.add("hidden");
+      document.getElementById("modal").classList.remove("flex");
+    }
+
+    document.getElementById("modalConfirm").addEventListener("click", () => {
+      const input = parseFloat(document.getElementById("modalAmount").value);
+      if (isNaN(input) || input <= 0) {
+        document.getElementById("modalTitle").textContent = "Invalid amount!";
+        return;
+      }
+
+      let balance = parseFloat(localStorage.getItem("balance") || 5000);
+      if (modalMode === "Deposit") {
+        balance += input;
+        localStorage.setItem("equity", balance + 100); // Equity grows with balance
+      } else {
+        if (input > balance) {
+          document.getElementById("modalTitle").textContent = "Insufficient balance!";
+          return;
+        }
+        balance -= input;
+        localStorage.setItem("equity", balance + 100);
+      }
+      localStorage.setItem("balance", balance.toFixed(2));
+      closeModal();
+      updateWalletUI();
+    });
 
     function initMarkets() {
       const symbols = {
