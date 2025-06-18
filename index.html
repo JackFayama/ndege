@@ -82,6 +82,81 @@
     </div>
   </div>
 
+  <!-- TRADING MODAL -->
+<div id="tradeModal" class="fixed inset-0 bg-black bg-opacity-50 items-center justify-center hidden z-50">
+  <div class="bg-white rounded-xl shadow p-6 w-80 space-y-4 text-center">
+    <h2 id="tradeModalTitle" class="text-lg font-bold">Place Trade</h2>
+    <div class="space-y-2">
+      <div class="flex justify-between text-sm">
+        <span id="tradeSymbol">EURUSD</span>
+        <span id="livePrice">Loading...</span>
+      </div>
+      <input id="lotSize" type="number" min="0.01" step="0.01" placeholder="Lot Size (0.01 - 50)" class="w-full border rounded px-3 py-2 text-center" />
+      <input id="stopLoss" type="number" placeholder="Stop Loss Price" class="w-full border rounded px-3 py-2 text-center" />
+      <input id="takeProfit" type="number" placeholder="Take Profit Price" class="w-full border rounded px-3 py-2 text-center" />
+    </div>
+    <button id="confirmTrade" class="bg-green-600 text-white px-4 py-2 rounded w-full">Confirm</button>
+    <button onclick="closeTradeModal()" class="text-sm text-gray-500 mt-2">Cancel</button>
+  </div>
+</div>
+
+<script>
+  let selectedTradeSymbol = '';
+  let selectedTradePrice = 0;
+
+  function openTradeModal(symbol, currentPrice) {
+    selectedTradeSymbol = symbol;
+    selectedTradePrice = currentPrice;
+    document.getElementById("tradeSymbol").textContent = symbol;
+    document.getElementById("livePrice").textContent = `Price: ${currentPrice}`;
+    document.getElementById("lotSize").value = '';
+    document.getElementById("stopLoss").value = '';
+    document.getElementById("takeProfit").value = '';
+    document.getElementById("tradeModal").classList.remove("hidden");
+    document.getElementById("tradeModal").classList.add("flex");
+  }
+
+  function closeTradeModal() {
+    document.getElementById("tradeModal").classList.add("hidden");
+    document.getElementById("tradeModal").classList.remove("flex");
+  }
+
+  document.getElementById("confirmTrade").addEventListener("click", () => {
+    const lot = parseFloat(document.getElementById("lotSize").value);
+    const sl = parseFloat(document.getElementById("stopLoss").value);
+    const tp = parseFloat(document.getElementById("takeProfit").value);
+    const balance = parseFloat(localStorage.getItem("balance") || 5000);
+    const cost = lot * 100; // Example cost logic
+
+    if (isNaN(lot) || lot < 0.01 || lot > 50 || isNaN(sl) || isNaN(tp)) {
+      document.getElementById("tradeModalTitle").textContent = "Invalid input values!";
+      return;
+    }
+
+    if (balance < cost) {
+      document.getElementById("tradeModalTitle").textContent = "Insufficient Balance!";
+      return;
+    }
+
+    // Save trade
+    const trades = JSON.parse(localStorage.getItem("trades") || "[]");
+    trades.push({
+      symbol: selectedTradeSymbol,
+      entryPrice: selectedTradePrice,
+      lot,
+      sl,
+      tp,
+      type: "BUY", // Default as BUY, you can add SELL handling later
+      open: true
+    });
+    localStorage.setItem("trades", JSON.stringify(trades));
+    localStorage.setItem("balance", (balance - cost).toFixed(2));
+    closeTradeModal();
+    updateWalletUI();
+  });
+</script>
+
+
   <!-- Script -->
   <script>
     const pages = ["home", "wallet", "trades", "user"];
