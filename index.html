@@ -42,80 +42,33 @@
   <script type="text/template" id="template-home">
     <div class="bg-green-600 text-white mx-4 rounded-2xl p-4">
       <div class="opacity-80 text-xs">Total</div>
-      <div class="text-3xl font-bold" id="homeBalance">KSh0.00</div>
-      <div class="text-xs" id="homeMargin">Margin: KSh0.00</div>
-      <div class="text-xs" id="homeEquity">Equity: KSh0.00</div>
-      <div class="text-xs" id="homeFree">Free Funds: KSh0.00</div>
+      <div class="text-3xl font-bold">$5,000.00</div>
+      <div class="text-xs">Margin: $1,200</div>
+      <div class="text-xs">Equity: $5,100</div>
+      <div class="text-xs">Free Funds: $3,900</div>
     </div>
     <div id="markets" class="p-4"></div>
   </script>
 
-  <!-- I <!-- Include the Trading Modal Here -->
-  <div id="tradeModal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
-    <div class="bg-white rounded-2xl w-full max-w-md p-6">
-      <h2 class="text-lg font-bold mb-4">Place Trade - <span id="modalPair">Pair</span></h2>
-      <div class="mb-2">
-        <label class="block mb-1 text-sm">Lot Size</label>
-        <input type="number" id="lotSize" min="0.01" max="50" step="0.01" value="1" class="w-full border rounded p-2">
-      </div>
-      <div class="mb-2">
-        <label class="block mb-1 text-sm">Stop Loss</label>
-        <input type="number" id="stopLoss" class="w-full border rounded p-2">
-      </div>
-      <div class="mb-4">
-        <label class="block mb-1 text-sm">Take Profit</label>
-        <input type="number" id="takeProfit" class="w-full border rounded p-2">
-      </div>
-      <div class="flex justify-between items-center">
-        <div id="livePrice" class="text-sm text-gray-700">Live Price: --</div>
-        <button onclick="closeTradeModal()" class="text-red-500 font-semibold">Close</button>
-      </div>
-      <div class="mt-4 flex gap-4">
-        <button onclick="placeTrade('buy')" class="w-full bg-green-600 text-white py-2 rounded-lg font-semibold">Buy</button>
-        <button onclick="placeTrade('sell')" class="w-full bg-red-600 text-white py-2 rounded-lg font-semibold">Sell</button>
-      </div>
+  <script type="text/template" id="template-wallet">
+    <div class="bg-white rounded-xl mx-4 mt-4 p-4 shadow space-y-3">
+      <div class="flex justify-between"><span>Trading Account</span><span>57269468</span></div>
+      <div class="flex justify-between"><span>Balance</span><span id="walletBalance">KSh0.00</span></div>
+      <div class="flex justify-between"><span>P&L</span><span id="walletPL">KSh0.00</span></div>
+      <div class="flex justify-between"><span>Remaining Margin</span><span id="remainingMargin">KSh0.00</span></div>
+      <div class="flex justify-between"><span>Margin Used</span><span id="marginUsed">KSh0.00</span></div>
     </div>
-  </div>
+  </script>
 
-  <!-- Market Logic + Modal Activation to be added next -->
-  <script>
-    let selectedSymbol = '';
-    let currentLivePrice = 0;
+  <script type="text/template" id="template-trades">
+    <div class="p-4 text-center text-gray-500">No trades yet. Start trading to see your open positions here.</div>
+  </script>
 
-    function openTradeModal(symbol, livePrice) {
-      selectedSymbol = symbol;
-      currentLivePrice = livePrice;
-      document.getElementById("modalPair").textContent = symbol;
-      document.getElementById("livePrice").textContent = `Live Price: ${livePrice}`;
-      document.getElementById("tradeModal").classList.remove("hidden");
-    }
+  <script type="text/template" id="template-user">
+    <div class="p-4 text-center text-gray-500">User profile and settings coming soon.</div>
+  </script>
 
-    function closeTradeModal() {
-      document.getElementById("tradeModal").classList.add("hidden");
-    }
-
-    function placeTrade(type) {
-      const lot = parseFloat(document.getElementById("lotSize").value);
-      const sl = parseFloat(document.getElementById("stopLoss").value);
-      const tp = parseFloat(document.getElementById("takeProfit").value);
-
-      const cost = lot * 100;
-      let balance = parseFloat(localStorage.getItem("balance") || 0);
-
-      if (balance < cost) {
-        alert("Insufficient balance");
-        return;
-      }
-
-      balance -= cost;
-      localStorage.setItem("balance", balance);
-      alert(`Trade placed on ${selectedSymbol} (${type.toUpperCase()}) at ${currentLivePrice}`);
-      closeTradeModal();
-      loadPage('home');
-    }
-  </script>nclude the Trading Modal Here -->
-  <!-- ... Insert the content from the previous trading modal here ... -->
-
+  <!-- Script -->
   <script>
     const pages = ["home", "wallet", "trades", "user"];
 
@@ -129,27 +82,22 @@
         if (btn) btn.classList.toggle("text-black", p !== page);
       });
 
-      const format = val => "KSh" + parseFloat(val).toLocaleString("en-KE", { minimumFractionDigits: 2 });
-      const balance = localStorage.getItem("balance") || 5000;
-      const equity = localStorage.getItem("equity") || 5100;
-      const margin = localStorage.getItem("margin") || 1200;
-      const free = equity - margin;
-      const pl = equity - balance;
-
       if (page === "wallet") {
+        const balance = localStorage.getItem("balance") || 5000;
+        const equity = localStorage.getItem("equity") || 5100;
+        const margin = localStorage.getItem("margin") || 1200;
+        const free = equity - margin;
+        const pl = equity - balance;
+
+        const format = val => "KSh" + parseFloat(val).toLocaleString("en-KE", { minimumFractionDigits: 2 });
+
         document.getElementById("walletBalance").textContent = format(balance);
         document.getElementById("walletPL").textContent = format(pl);
         document.getElementById("remainingMargin").textContent = format(free);
         document.getElementById("marginUsed").textContent = format(margin);
       }
 
-      if (page === "home") {
-        document.getElementById("homeBalance").textContent = format(balance);
-        document.getElementById("homeEquity").textContent = format(equity);
-        document.getElementById("homeMargin").textContent = "Margin: " + format(margin);
-        document.getElementById("homeFree").textContent = "Free Funds: " + format(free);
-        initMarkets();
-      }
+      if (page === "home") initMarkets();
     }
 
     function initMarkets() {
