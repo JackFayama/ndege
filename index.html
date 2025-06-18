@@ -50,7 +50,70 @@
     <div id="markets" class="p-4"></div>
   </script>
 
-  <!-- Include the Trading Modal Here -->
+  <!-- I <!-- Include the Trading Modal Here -->
+  <div id="tradeModal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
+    <div class="bg-white rounded-2xl w-full max-w-md p-6">
+      <h2 class="text-lg font-bold mb-4">Place Trade - <span id="modalPair">Pair</span></h2>
+      <div class="mb-2">
+        <label class="block mb-1 text-sm">Lot Size</label>
+        <input type="number" id="lotSize" min="0.01" max="50" step="0.01" value="1" class="w-full border rounded p-2">
+      </div>
+      <div class="mb-2">
+        <label class="block mb-1 text-sm">Stop Loss</label>
+        <input type="number" id="stopLoss" class="w-full border rounded p-2">
+      </div>
+      <div class="mb-4">
+        <label class="block mb-1 text-sm">Take Profit</label>
+        <input type="number" id="takeProfit" class="w-full border rounded p-2">
+      </div>
+      <div class="flex justify-between items-center">
+        <div id="livePrice" class="text-sm text-gray-700">Live Price: --</div>
+        <button onclick="closeTradeModal()" class="text-red-500 font-semibold">Close</button>
+      </div>
+      <div class="mt-4 flex gap-4">
+        <button onclick="placeTrade('buy')" class="w-full bg-green-600 text-white py-2 rounded-lg font-semibold">Buy</button>
+        <button onclick="placeTrade('sell')" class="w-full bg-red-600 text-white py-2 rounded-lg font-semibold">Sell</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Market Logic + Modal Activation to be added next -->
+  <script>
+    let selectedSymbol = '';
+    let currentLivePrice = 0;
+
+    function openTradeModal(symbol, livePrice) {
+      selectedSymbol = symbol;
+      currentLivePrice = livePrice;
+      document.getElementById("modalPair").textContent = symbol;
+      document.getElementById("livePrice").textContent = `Live Price: ${livePrice}`;
+      document.getElementById("tradeModal").classList.remove("hidden");
+    }
+
+    function closeTradeModal() {
+      document.getElementById("tradeModal").classList.add("hidden");
+    }
+
+    function placeTrade(type) {
+      const lot = parseFloat(document.getElementById("lotSize").value);
+      const sl = parseFloat(document.getElementById("stopLoss").value);
+      const tp = parseFloat(document.getElementById("takeProfit").value);
+
+      const cost = lot * 100;
+      let balance = parseFloat(localStorage.getItem("balance") || 0);
+
+      if (balance < cost) {
+        alert("Insufficient balance");
+        return;
+      }
+
+      balance -= cost;
+      localStorage.setItem("balance", balance);
+      alert(`Trade placed on ${selectedSymbol} (${type.toUpperCase()}) at ${currentLivePrice}`);
+      closeTradeModal();
+      loadPage('home');
+    }
+  </script>nclude the Trading Modal Here -->
   <!-- ... Insert the content from the previous trading modal here ... -->
 
   <script>
