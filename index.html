@@ -16,7 +16,7 @@
   </div>
 
   <!-- Page Content -->
-  <div id="pageContent" class="pt-[120px] pb-[80px]"></div>
+  <div id="pageContent" class="pt-[80px] pb-[80px]"></div>
 
   <!-- Bottom Navigation -->
   <div class="fixed bottom-0 left-0 right-0 z-50 bg-gray-100 flex justify-around py-3 rounded-t-2xl border-t">
@@ -38,72 +38,127 @@
     </button>
   </div>
 
-  <!-- Modals -->
-  <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white p-6 rounded-xl w-80 max-w-full">
-      <div id="modalContent"></div>
-      <button onclick="closeModal()" class="mt-4 w-full bg-green-600 text-white py-2 rounded-lg">Close</button>
+  <!-- Page Templates -->
+  <script type="text/template" id="template-home">
+    <div class="bg-green-600 text-white mx-4 rounded-2xl p-4">
+      <div class="opacity-80 text-xs">Total</div>
+      <div class="text-3xl font-bold" id="homeBalance">KSh0.00</div>
+      <div class="text-xs" id="homeMargin">Margin: KSh0.00</div>
+      <div class="text-xs" id="homeEquity">Equity: KSh0.00</div>
+      <div class="text-xs" id="homeFree">Free Funds: KSh0.00</div>
     </div>
-  </div>
-
-  <!-- Deposit/Withdraw Modal Templates -->
-  <template id="depositModal">
-    <h2 class="text-xl font-bold mb-2">Deposit</h2>
-    <input type="number" id="depositAmount" placeholder="Enter amount" class="w-full border p-2 rounded mb-3" />
-    <button onclick="confirmDeposit()" class="w-full bg-green-600 text-white py-2 rounded">Confirm</button>
-  </template>
-
-  <template id="withdrawModal">
-    <h2 class="text-xl font-bold mb-2">Withdraw</h2>
-    <input type="number" id="withdrawAmount" placeholder="Enter amount" class="w-full border p-2 rounded mb-3" />
-    <button onclick="confirmWithdraw()" class="w-full bg-green-600 text-white py-2 rounded">Confirm</button>
-  </template>
-
-  <!-- Deposit/Withdraw Buttons -->
-  <div class="fixed right-4 bottom-20 space-y-3 z-40">
-    <button onclick="showModal('deposit')" class="bg-green-600 text-white p-2 rounded-full shadow">Deposit</button>
-    <button onclick="showModal('withdraw')" class="bg-yellow-500 text-white p-2 rounded-full shadow">Withdraw</button>
-  </div>
-
-  <script>
-    function showModal(type) {
-      const modal = document.getElementById("modal");
-      const content = document.getElementById("modalContent");
-      const tpl = document.getElementById(`${type}Modal`);
-      if (tpl) content.innerHTML = tpl.innerHTML;
-      modal.classList.remove("hidden");
-    }
-
-    function closeModal() {
-      document.getElementById("modal").classList.add("hidden");
-    }
-
-    function confirmDeposit() {
-      const amount = parseFloat(document.getElementById("depositAmount").value);
-      if (amount > 0) {
-        const current = parseFloat(localStorage.getItem("balance") || 5000);
-        const newBalance = current + amount;
-        localStorage.setItem("balance", newBalance);
-        localStorage.setItem("equity", newBalance + 100);
-        closeModal();
-        loadPage('wallet');
-        loadPage('home');
-      }
-    }
-
-    function confirmWithdraw() {
-      const amount = parseFloat(document.getElementById("withdrawAmount").value);
-      const current = parseFloat(localStorage.getItem("balance") || 5000);
-      if (amount > 0 && current >= amount) {
-        const newBalance = current - amount;
-        localStorage.setItem("balance", newBalance);
-        localStorage.setItem("equity", newBalance + 100);
-        closeModal();
-        loadPage('wallet');
-        loadPage('home');
-      }
-    }
+    <div id="markets" class="p-4"></div>
   </script>
 
+  <!-- Include the Trading Modal Here -->
+  <!-- ... Insert the content from the previous trading modal here ... -->
+
+  <script>
+    const pages = ["home", "wallet", "trades", "user"];
+
+    function loadPage(page) {
+      const tpl = document.getElementById(`template-${page}`);
+      document.getElementById("pageContent").innerHTML = tpl ? tpl.innerHTML : "<div class='p-4'>Coming soon...</div>";
+
+      pages.forEach(p => {
+        const btn = document.getElementById(`tab-${p}`);
+        if (btn) btn.classList.toggle("text-green-400", p === page);
+        if (btn) btn.classList.toggle("text-black", p !== page);
+      });
+
+      const format = val => "KSh" + parseFloat(val).toLocaleString("en-KE", { minimumFractionDigits: 2 });
+      const balance = localStorage.getItem("balance") || 5000;
+      const equity = localStorage.getItem("equity") || 5100;
+      const margin = localStorage.getItem("margin") || 1200;
+      const free = equity - margin;
+      const pl = equity - balance;
+
+      if (page === "wallet") {
+        document.getElementById("walletBalance").textContent = format(balance);
+        document.getElementById("walletPL").textContent = format(pl);
+        document.getElementById("remainingMargin").textContent = format(free);
+        document.getElementById("marginUsed").textContent = format(margin);
+      }
+
+      if (page === "home") {
+        document.getElementById("homeBalance").textContent = format(balance);
+        document.getElementById("homeEquity").textContent = format(equity);
+        document.getElementById("homeMargin").textContent = "Margin: " + format(margin);
+        document.getElementById("homeFree").textContent = "Free Funds: " + format(free);
+        initMarkets();
+      }
+    }
+
+    function initMarkets() {
+      const symbols = {
+        "EURUSD": "OANDA:EUR_USD",
+        "GBPUSD": "OANDA:GBP_USD",
+        "USDJPY": "OANDA:USD_JPY",
+        "USDCHF": "OANDA:USD_CHF",
+        "USDCAD": "OANDA:USD_CAD",
+        "AUDUSD": "OANDA:AUD_USD",
+        "NZDUSD": "OANDA:NZD_USD",
+        "EURJPY": "OANDA:EUR_JPY",
+        "GBPJPY": "OANDA:GBP_JPY",
+        "XAUUSD": "OANDA:XAU_USD"
+      };
+      const socket = new WebSocket("wss://ws.finnhub.io?token=d17ug69r01qteuvq4ga0d17ug69r01qteuvq4gag");
+      const prices = {};
+
+      socket.addEventListener("open", () => {
+        for (let key in symbols) {
+          socket.send(JSON.stringify({ type: "subscribe", symbol: symbols[key] }));
+          const container = document.getElementById("markets");
+          if (container) {
+            const card = document.createElement("div");
+            card.className = "bg-white rounded-xl shadow p-4 mb-4";
+            card.innerHTML = `
+              <div class="flex justify-between font-semibold mb-2">
+                <span>${key}</span>
+                <span id="change-${key}">Loading...</span>
+              </div>
+              <div class="flex justify-between">
+                <div class="text-red-600" id="sell-${key}">Loading...</div>
+                <div class="text-green-600" id="buy-${key}">Loading...</div>
+              </div>
+            `;
+            container.appendChild(card);
+          }
+        }
+      });
+
+      socket.addEventListener("message", event => {
+        const data = JSON.parse(event.data);
+        if (data.type === "trade") {
+          data.data.forEach(trade => {
+            const full = trade.s.replace("OANDA:", "");
+            const id = full.replace("_", "");
+            const price = parseFloat(trade.p).toFixed(5);
+
+            if (!prices[id]) prices[id] = { last: price };
+            const sellPrice = (price - 0.0002).toFixed(5);
+            const change = price - prices[id].last;
+            const percent = ((change / prices[id].last) * 100).toFixed(2);
+            prices[id].last = price;
+
+            const update = (id, val, cls = "") => {
+              const el = document.getElementById(id);
+              if (el && el.textContent !== val) {
+                el.textContent = val;
+                if (cls) el.className = `font-bold ${cls}`;
+              }
+            };
+            update(`sell-${id}`, `${sellPrice} Sell`);
+            update(`buy-${id}`, `Buy ${price}`);
+            update(`change-${id}`, `${change >= 0 ? "↑" : "↓"} ${Math.abs(percent)}%`, change >= 0 ? "text-green-600" : "text-red-600");
+          });
+        }
+      });
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      loadPage("home");
+    });
+  </script>
 </body>
 </html>
