@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NovaFX</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -16,7 +16,7 @@
   </div>
 
   <!-- Page Content -->
-  <div id="pageContent" class="pt-[120px] pb-[80px]"></div>
+  <div id="pageContent" class="pt-[80px] pb-[80px]"></div>
 
   <!-- Bottom Navigation -->
   <div class="fixed bottom-0 left-0 right-0 z-50 bg-gray-100 flex justify-around py-3 rounded-t-2xl border-t">
@@ -38,129 +38,23 @@
     </button>
   </div>
 
-  <!-- Templates -->
+  <!-- Page Templates -->
   <script type="text/template" id="template-home">
     <div class="bg-green-600 text-white mx-4 rounded-2xl p-4">
       <div class="opacity-80 text-xs">Total</div>
-      <div class="text-3xl font-bold">$5,000.00</div>
-      <div class="text-xs">Margin: $1,200</div>
-      <div class="text-xs">Equity: $5,100</div>
-      <div class="text-xs">Free Funds: $3,900</div>
+      <div class="text-3xl font-bold" id="homeBalance">KSh0.00</div>
+      <div class="text-xs" id="homeMargin">Margin: KSh0.00</div>
+      <div class="text-xs" id="homeEquity">Equity: KSh0.00</div>
+      <div class="text-xs" id="homeFree">Free Funds: KSh0.00</div>
     </div>
     <div id="markets" class="p-4"></div>
   </script>
 
-  <script type="text/template" id="template-wallet">
-    <div class="bg-white rounded-xl mx-4 mt-4 p-4 shadow space-y-3">
-      <div class="flex justify-between"><span>Trading Account</span><span>57269468</span></div>
-      <div class="flex justify-between"><span>Balance</span><span id="walletBalance">KSh0.00</span></div>
-      <div class="flex justify-between"><span>P&L</span><span id="walletPL">KSh0.00</span></div>
-      <div class="flex justify-between"><span>Remaining Margin</span><span id="remainingMargin">KSh0.00</span></div>
-      <div class="flex justify-between"><span>Margin Used</span><span id="marginUsed">KSh0.00</span></div>
-    </div>
-    <div class="flex justify-center gap-4 mt-4">
-      <button onclick="openModal('Deposit')" class="bg-green-600 text-white px-6 py-2 rounded-full shadow">Deposit</button>
-      <button onclick="openModal('Withdraw')" class="bg-red-600 text-white px-6 py-2 rounded-full shadow">Withdraw</button>
-    </div>
-  </script>
+  <!-- Include the Trading Modal Here -->
+  <!-- ... Insert the content from the previous trading modal here ... -->
 
-  <script type="text/template" id="template-trades">
-    <div class="p-4 text-center text-gray-500">No trades yet. Start trading to see your open positions here.</div>
-  </script>
-
-  <script type="text/template" id="template-user">
-    <div class="p-4 text-center text-gray-500">User profile and settings coming soon.</div>
-  </script>
-
-  <!-- Modal -->
-  <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 items-center justify-center hidden z-50">
-    <div class="bg-white rounded-xl shadow p-6 w-80 space-y-4 text-center">
-      <h2 id="modalTitle" class="text-lg font-bold"></h2>
-      <input id="modalAmount" type="number" placeholder="Enter amount" class="w-full border rounded px-3 py-2 text-center"/>
-      <button id="modalConfirm" class="bg-green-600 text-white px-4 py-2 rounded w-full">Confirm</button>
-      <button onclick="closeModal()" class="text-sm text-gray-500 mt-2">Cancel</button>
-    </div>
-  </div>
-
-  <!-- TRADING MODAL -->
-<div id="tradeModal" class="fixed inset-0 bg-black bg-opacity-50 items-center justify-center hidden z-50">
-  <div class="bg-white rounded-xl shadow p-6 w-80 space-y-4 text-center">
-    <h2 id="tradeModalTitle" class="text-lg font-bold">Place Trade</h2>
-    <div class="space-y-2">
-      <div class="flex justify-between text-sm">
-        <span id="tradeSymbol">EURUSD</span>
-        <span id="livePrice">Loading...</span>
-      </div>
-      <input id="lotSize" type="number" min="0.01" step="0.01" placeholder="Lot Size (0.01 - 50)" class="w-full border rounded px-3 py-2 text-center" />
-      <input id="stopLoss" type="number" placeholder="Stop Loss Price" class="w-full border rounded px-3 py-2 text-center" />
-      <input id="takeProfit" type="number" placeholder="Take Profit Price" class="w-full border rounded px-3 py-2 text-center" />
-    </div>
-    <button id="confirmTrade" class="bg-green-600 text-white px-4 py-2 rounded w-full">Confirm</button>
-    <button onclick="closeTradeModal()" class="text-sm text-gray-500 mt-2">Cancel</button>
-  </div>
-</div>
-
-<script>
-  let selectedTradeSymbol = '';
-  let selectedTradePrice = 0;
-
-  function openTradeModal(symbol, currentPrice) {
-    selectedTradeSymbol = symbol;
-    selectedTradePrice = currentPrice;
-    document.getElementById("tradeSymbol").textContent = symbol;
-    document.getElementById("livePrice").textContent = `Price: ${currentPrice}`;
-    document.getElementById("lotSize").value = '';
-    document.getElementById("stopLoss").value = '';
-    document.getElementById("takeProfit").value = '';
-    document.getElementById("tradeModal").classList.remove("hidden");
-    document.getElementById("tradeModal").classList.add("flex");
-  }
-
-  function closeTradeModal() {
-    document.getElementById("tradeModal").classList.add("hidden");
-    document.getElementById("tradeModal").classList.remove("flex");
-  }
-
-  document.getElementById("confirmTrade").addEventListener("click", () => {
-    const lot = parseFloat(document.getElementById("lotSize").value);
-    const sl = parseFloat(document.getElementById("stopLoss").value);
-    const tp = parseFloat(document.getElementById("takeProfit").value);
-    const balance = parseFloat(localStorage.getItem("balance") || 5000);
-    const cost = lot * 100; // Example cost logic
-
-    if (isNaN(lot) || lot < 0.01 || lot > 50 || isNaN(sl) || isNaN(tp)) {
-      document.getElementById("tradeModalTitle").textContent = "Invalid input values!";
-      return;
-    }
-
-    if (balance < cost) {
-      document.getElementById("tradeModalTitle").textContent = "Insufficient Balance!";
-      return;
-    }
-
-    // Save trade
-    const trades = JSON.parse(localStorage.getItem("trades") || "[]");
-    trades.push({
-      symbol: selectedTradeSymbol,
-      entryPrice: selectedTradePrice,
-      lot,
-      sl,
-      tp,
-      type: "BUY", // Default as BUY, you can add SELL handling later
-      open: true
-    });
-    localStorage.setItem("trades", JSON.stringify(trades));
-    localStorage.setItem("balance", (balance - cost).toFixed(2));
-    closeTradeModal();
-    updateWalletUI();
-  });
-</script>
-
-
-  <!-- Script -->
   <script>
     const pages = ["home", "wallet", "trades", "user"];
-    let modalMode = "";
 
     function loadPage(page) {
       const tpl = document.getElementById(`template-${page}`);
@@ -172,61 +66,28 @@
         if (btn) btn.classList.toggle("text-black", p !== page);
       });
 
-      if (page === "wallet") updateWalletUI();
-      if (page === "home") initMarkets();
-    }
-
-    function updateWalletUI() {
-      const balance = parseFloat(localStorage.getItem("balance") || 5000);
-      const equity = parseFloat(localStorage.getItem("equity") || 5100);
-      const margin = parseFloat(localStorage.getItem("margin") || 1200);
+      const format = val => "KSh" + parseFloat(val).toLocaleString("en-KE", { minimumFractionDigits: 2 });
+      const balance = localStorage.getItem("balance") || 5000;
+      const equity = localStorage.getItem("equity") || 5100;
+      const margin = localStorage.getItem("margin") || 1200;
       const free = equity - margin;
       const pl = equity - balance;
 
-      const format = val => "KSh" + parseFloat(val).toLocaleString("en-KE", { minimumFractionDigits: 2 });
-
-      document.getElementById("walletBalance").textContent = format(balance);
-      document.getElementById("walletPL").textContent = format(pl);
-      document.getElementById("remainingMargin").textContent = format(free);
-      document.getElementById("marginUsed").textContent = format(margin);
-    }
-
-    function openModal(mode) {
-      modalMode = mode;
-      document.getElementById("modalTitle").textContent = `${mode} Funds`;
-      document.getElementById("modalAmount").value = "";
-      document.getElementById("modal").classList.remove("hidden");
-      document.getElementById("modal").classList.add("flex");
-    }
-
-    function closeModal() {
-      document.getElementById("modal").classList.add("hidden");
-      document.getElementById("modal").classList.remove("flex");
-    }
-
-    document.getElementById("modalConfirm").addEventListener("click", () => {
-      const input = parseFloat(document.getElementById("modalAmount").value);
-      if (isNaN(input) || input <= 0) {
-        document.getElementById("modalTitle").textContent = "Invalid amount!";
-        return;
+      if (page === "wallet") {
+        document.getElementById("walletBalance").textContent = format(balance);
+        document.getElementById("walletPL").textContent = format(pl);
+        document.getElementById("remainingMargin").textContent = format(free);
+        document.getElementById("marginUsed").textContent = format(margin);
       }
 
-      let balance = parseFloat(localStorage.getItem("balance") || 5000);
-      if (modalMode === "Deposit") {
-        balance += input;
-        localStorage.setItem("equity", balance + 100); // Equity grows with balance
-      } else {
-        if (input > balance) {
-          document.getElementById("modalTitle").textContent = "Insufficient balance!";
-          return;
-        }
-        balance -= input;
-        localStorage.setItem("equity", balance + 100);
+      if (page === "home") {
+        document.getElementById("homeBalance").textContent = format(balance);
+        document.getElementById("homeEquity").textContent = format(equity);
+        document.getElementById("homeMargin").textContent = "Margin: " + format(margin);
+        document.getElementById("homeFree").textContent = "Free Funds: " + format(free);
+        initMarkets();
       }
-      localStorage.setItem("balance", balance.toFixed(2));
-      closeModal();
-      updateWalletUI();
-    });
+    }
 
     function initMarkets() {
       const symbols = {
