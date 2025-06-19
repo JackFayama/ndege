@@ -7,14 +7,18 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-sm text-gray-900">
+
+  <!-- Top Fixed Header -->
   <div class="fixed top-0 left-0 right-0 z-50 bg-gray-100">
     <div class="p-4">
       <div class="text-2xl font-bold text-black">NovaFX</div>
     </div>
   </div>
 
+  <!-- Page Content -->
   <div id="pageContent" class="pt-[80px] pb-[80px]"></div>
 
+  <!-- Bottom Navigation -->
   <div class="fixed bottom-0 left-0 right-0 z-50 bg-gray-100 flex justify-around py-3 rounded-t-2xl border-t">
     <button onclick="loadPage('home')" id="tab-home" class="tab-btn flex flex-col items-center text-green-400">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -34,14 +38,57 @@
     </button>
   </div>
 
+  <!-- Templates -->
+  <script type="text/template" id="template-home">
+    <div class="bg-green-600 text-white mx-4 rounded-2xl p-4">
+      <div class="opacity-80 text-xs">Total</div>
+      <div class="text-3xl font-bold" id="homeBalance">KSh0.00</div>
+      <div class="text-xs" id="homeMargin">Margin: KSh0.00</div>
+      <div class="text-xs" id="homeEquity">Equity: KSh0.00</div>
+      <div class="text-xs" id="homeFree">Free Funds: KSh0.00</div>
+    </div>
+    <div id="markets" class="p-4"></div>
+  </script>
+
+  <script type="text/template" id="template-wallet">
+    <div class="mx-4 p-4 bg-white rounded-2xl shadow space-y-2">
+      <div><span class="text-gray-500">Balance:</span> <span id="walletBalance">KSh0.00</span></div>
+      <div><span class="text-gray-500">P&L:</span> <span id="walletPL">KSh0.00</span></div>
+      <div><span class="text-gray-500">Remaining Margin:</span> <span id="remainingMargin">KSh0.00</span></div>
+      <div><span class="text-gray-500">Margin Used:</span> <span id="marginUsed">KSh0.00</span></div>
+      <div class="flex gap-2 mt-4">
+        <button onclick="openWalletModal('deposit')" class="flex-1 bg-green-500 text-white rounded-xl py-2">Deposit</button>
+        <button onclick="openWalletModal('withdraw')" class="flex-1 bg-red-500 text-white rounded-xl py-2">Withdraw</button>
+      </div>
+    </div>
+  </script>
+
+  <script type="text/template" id="template-trades">
+    <div id="tradesList" class="p-4 space-y-2"></div>
+  </script>
+
+  <script type="text/template" id="template-user">
+    <div class="p-4 text-center text-gray-500">User profile will go here.</div>
+  </script>
+
+  <!-- Wallet Modal -->
+  <div id="walletModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-2xl w-[90%] max-w-sm space-y-4">
+      <h2 class="text-lg font-semibold" id="walletModalTitle">Action</h2>
+      <input type="number" id="walletAmount" class="w-full border p-2 rounded-md" placeholder="Amount (KSh)" />
+      <div class="flex justify-end gap-2">
+        <button onclick="closeWalletModal()" class="px-4 py-2">Cancel</button>
+        <button id="walletConfirmBtn" class="bg-green-600 text-white px-4 py-2 rounded">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trade Modal -->
   <div id="tradeModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
     <div class="bg-white p-6 rounded-2xl w-[90%] max-w-sm space-y-4">
       <h2 class="text-lg font-semibold" id="tradeModalTitle">Trade</h2>
       <p id="tradeSymbol" class="font-semibold text-center"></p>
-      <input type="number" id="lotSize" class="w-full border p-2 rounded-md" placeholder="Lot Size" />
       <input type="number" id="tradeAmount" class="w-full border p-2 rounded-md" placeholder="Amount (KSh)" />
-      <input type="number" id="takeProfit" class="w-full border p-2 rounded-md" placeholder="Take Profit Price" />
-      <input type="number" id="stopLoss" class="w-full border p-2 rounded-md" placeholder="Stop Loss Price" />
       <div class="flex justify-end gap-2">
         <button onclick="closeTradeModal()" class="px-4 py-2">Cancel</button>
         <button onclick="confirmTrade()" class="bg-blue-600 text-white px-4 py-2 rounded">Submit</button>
@@ -50,28 +97,79 @@
   </div>
 
   <script>
-    const prices = {};
-    const socket = new WebSocket("wss://ws.finnhub.io?token=d17ug69r01qteuvq4ga0d17ug69r01qteuvq4gag");
-    const format = val => "KSh" + parseFloat(val).toLocaleString("en-KE", { minimumFractionDigits: 2 });
+    const pages = ["home", "wallet", "trades", "user"];
+    let tradeAction = null, tradeSymbol = null;
 
-    function confirmTrade() {
-      const amount = parseFloat(document.getElementById("tradeAmount").value || 0);
-      const lotSize = parseFloat(document.getElementById("lotSize").value || 1);
-      const takeProfit = parseFloat(document.getElementById("takeProfit").value);
-      const stopLoss = parseFloat(document.getElementById("stopLoss").value);
-      const trades = JSON.parse(localStorage.getItem("trades") || "[]");
-      trades.push({ 
-        symbol: tradeSymbol, 
-        type: tradeAction, 
-        amount, 
-        lotSize, 
-        takeProfit, 
-        stopLoss,
-        active: true
+    function loadPage(page) {
+      const tpl = document.getElementById(`template-${page}`);
+      document.getElementById("pageContent").innerHTML = tpl ? tpl.innerHTML : "<div class='p-4'>Coming soon...</div>";
+
+      pages.forEach(p => {
+        const btn = document.getElementById(`tab-${p}`);
+        if (btn) btn.classList.toggle("text-green-400", p === page);
+        if (btn) btn.classList.toggle("text-black", p !== page);
       });
-      localStorage.setItem("trades", JSON.stringify(trades));
-      closeTradeModal();
-      loadPage("trades");
+
+      const format = val => "KSh" + parseFloat(val).toLocaleString("en-KE", { minimumFractionDigits: 2 });
+      const balance = parseFloat(localStorage.getItem("balance") || 5000);
+      const equity = parseFloat(localStorage.getItem("equity") || 5100);
+      const margin = parseFloat(localStorage.getItem("margin") || 1200);
+      const free = equity - margin;
+      const pl = equity - balance;
+
+      if (page === "wallet") {
+        document.getElementById("walletBalance").textContent = format(balance);
+        document.getElementById("walletPL").textContent = format(pl);
+        document.getElementById("remainingMargin").textContent = format(free);
+        document.getElementById("marginUsed").textContent = format(margin);
+      }
+
+      if (page === "home") {
+        document.getElementById("homeBalance").textContent = format(balance);
+        document.getElementById("homeEquity").textContent = format(equity);
+        document.getElementById("homeMargin").textContent = "Margin: " + format(margin);
+        document.getElementById("homeFree").textContent = "Free Funds: " + format(free);
+        initMarkets();
+      }
+
+      if (page === "trades") {
+        const list = JSON.parse(localStorage.getItem("trades") || "[]");
+        const container = document.getElementById("tradesList");
+        container.innerHTML = list.map(t => `<div class='bg-white p-3 rounded-xl shadow flex justify-between'><span>${t.type} ${t.symbol}</span><span>${format(t.amount)}</span></div>`).join("");
+      }
+    }
+
+    function openWalletModal(type) {
+      document.getElementById("walletModalTitle").textContent = type === "deposit" ? "Deposit Funds" : "Withdraw Funds";
+      document.getElementById("walletAmount").value = "";
+      document.getElementById("walletConfirmBtn").onclick = () => {
+        let amt = parseFloat(document.getElementById("walletAmount").value || 0);
+        let bal = parseFloat(localStorage.getItem("balance") || 5000);
+        if (type === "deposit") bal += amt;
+        if (type === "withdraw") bal -= amt;
+        localStorage.setItem("balance", bal);
+        localStorage.setItem("equity", bal + 100);
+        closeWalletModal();
+        loadPage("wallet");
+        loadPage("home");
+      };
+      document.getElementById("walletModal").classList.remove("hidden");
+      document.getElementById("walletModal").classList.add("flex");
+    }
+
+    function closeWalletModal() {
+      document.getElementById("walletModal").classList.add("hidden");
+      document.getElementById("walletModal").classList.remove("flex");
+    }
+
+    function openTradeModal(symbol, type) {
+      tradeSymbol = symbol;
+      tradeAction = type;
+      document.getElementById("tradeModalTitle").textContent = `${type} ${symbol}`;
+      document.getElementById("tradeSymbol").textContent = symbol;
+      document.getElementById("tradeAmount").value = "";
+      document.getElementById("tradeModal").classList.remove("hidden");
+      document.getElementById("tradeModal").classList.add("flex");
     }
 
     function closeTradeModal() {
@@ -79,59 +177,82 @@
       document.getElementById("tradeModal").classList.remove("flex");
     }
 
-    function simulateTrades(livePrices) {
-      let trades = JSON.parse(localStorage.getItem("trades") || "[]");
-      let updated = false;
-      let balance = parseFloat(localStorage.getItem("balance") || 5000);
-      trades = trades.map(t => {
-        if (!t.active) return t;
-        const price = livePrices[t.symbol.replace("_", "")]?.last;
-        if (!price) return t;
-
-        if (t.type === 'Buy' && price >= t.takeProfit) {
-          balance += t.amount;
-          t.active = false;
-          updated = true;
-        } else if (t.type === 'Buy' && price <= t.stopLoss) {
-          balance -= t.amount;
-          t.active = false;
-          updated = true;
-        } else if (t.type === 'Sell' && price <= t.takeProfit) {
-          balance += t.amount;
-          t.active = false;
-          updated = true;
-        } else if (t.type === 'Sell' && price >= t.stopLoss) {
-          balance -= t.amount;
-          t.active = false;
-          updated = true;
-        }
-        return t;
-      });
-      if (updated) {
-        localStorage.setItem("balance", balance);
-        localStorage.setItem("equity", balance + 100);
-        localStorage.setItem("trades", JSON.stringify(trades));
-        loadPage("wallet");
-        loadPage("trades");
-        loadPage("home");
-      }
+    function confirmTrade() {
+      const amount = parseFloat(document.getElementById("tradeAmount").value || 0);
+      const trades = JSON.parse(localStorage.getItem("trades") || "[]");
+      trades.push({ symbol: tradeSymbol, type: tradeAction, amount });
+      localStorage.setItem("trades", JSON.stringify(trades));
+      closeTradeModal();
+      loadPage("trades");
     }
 
-    socket.addEventListener("message", event => {
-      const data = JSON.parse(event.data);
-      if (data.type === "trade") {
-        const livePrices = {};
-        data.data.forEach(trade => {
-          const full = trade.s.replace("OANDA:", "");
-          const id = full.replace("_", "");
-          const price = parseFloat(trade.p).toFixed(5);
-          if (!prices[id]) prices[id] = { last: price };
-          prices[id].last = price;
-          livePrices[id] = { last: parseFloat(price) };
-        });
-        simulateTrades(livePrices);
-      }
-    });
+    function initMarkets() {
+      const symbols = {
+        "EURUSD": "OANDA:EUR_USD",
+        "GBPUSD": "OANDA:GBP_USD",
+        "USDJPY": "OANDA:USD_JPY",
+        "USDCHF": "OANDA:USD_CHF",
+        "USDCAD": "OANDA:USD_CAD",
+        "AUDUSD": "OANDA:AUD_USD",
+        "NZDUSD": "OANDA:NZD_USD",
+        "EURJPY": "OANDA:EUR_JPY",
+        "GBPJPY": "OANDA:GBP_JPY",
+        "XAUUSD": "OANDA:XAU_USD"
+      };
+      const socket = new WebSocket("wss://ws.finnhub.io?token=d17ug69r01qteuvq4ga0d17ug69r01qteuvq4gag");
+      const prices = {};
+
+      socket.addEventListener("open", () => {
+        for (let key in symbols) {
+          socket.send(JSON.stringify({ type: "subscribe", symbol: symbols[key] }));
+          const container = document.getElementById("markets");
+          if (container) {
+            const card = document.createElement("div");
+            card.className = "bg-white rounded-xl shadow p-4 mb-4";
+            card.innerHTML = `
+              <div class="flex justify-between font-semibold mb-2">
+                <span>${key}</span>
+                <span id="change-${key}">Loading...</span>
+              </div>
+              <div class="flex justify-between">
+                <div class="text-red-600 cursor-pointer" id="sell-${key}" onclick="openTradeModal('${key}', 'Sell')">Loading...</div>
+                <div class="text-green-600 cursor-pointer" id="buy-${key}" onclick="openTradeModal('${key}', 'Buy')">Loading...</div>
+              </div>`;
+            container.appendChild(card);
+          }
+        }
+      });
+
+      socket.addEventListener("message", event => {
+        const data = JSON.parse(event.data);
+        if (data.type === "trade") {
+          data.data.forEach(trade => {
+            const full = trade.s.replace("OANDA:", "");
+            const id = full.replace("_", "");
+            const price = parseFloat(trade.p).toFixed(5);
+
+            if (!prices[id]) prices[id] = { last: price };
+            const sellPrice = (price - 0.0002).toFixed(5);
+            const change = price - prices[id].last;
+            const percent = ((change / prices[id].last) * 100).toFixed(2);
+            prices[id].last = price;
+
+            const update = (id, val, cls = "") => {
+              const el = document.getElementById(id);
+              if (el && el.textContent !== val) {
+                el.textContent = val;
+                if (cls) el.className = `font-bold ${cls}`;
+              }
+            };
+            update(`sell-${id}`, `${sellPrice} Sell`);
+            update(`buy-${id}`, `Buy ${price}`);
+            update(`change-${id}`, `${change >= 0 ? "↑" : "↓"} ${Math.abs(percent)}%`, change >= 0 ? "text-green-600" : "text-red-600");
+          });
+        }
+      });
+    }
+
+    window.addEventListener("DOMContentLoaded", () => loadPage("home"));
   </script>
 </body>
 </html>
