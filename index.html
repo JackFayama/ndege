@@ -50,115 +50,78 @@
     <div id="markets" class="p-4"></div>
   </script>
 
-  <!-- Include the Trading Modal Here -->
-  <!-- ... Insert the content from the previous trading modal here ... -->
+  <!-- Trade Modal -->
+  <div id="tradeModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl p-6 w-full max-w-sm shadow-lg">
+      <h2 class="text-lg font-semibold mb-4">Place Trade (<span id="modalPair"></span>)</h2>
+      <div class="mb-2">
+        <label class="block text-xs">Lot Size (0.01 - 50)</label>
+        <input id="lotSizeInput" type="number" min="0.01" step="0.01" max="50" class="w-full p-2 border rounded mt-1" />
+      </div>
+      <div class="mb-2">
+        <label class="block text-xs">Stop Loss</label>
+        <input id="stopLossInput" type="number" class="w-full p-2 border rounded mt-1" />
+      </div>
+      <div class="mb-2">
+        <label class="block text-xs">Take Profit</label>
+        <input id="takeProfitInput" type="number" class="w-full p-2 border rounded mt-1" />
+      </div>
+      <div class="text-xs mb-4">Live Price: <span id="modalLivePrice">0.00000</span></div>
+      <div class="flex gap-4">
+        <button onclick="placeTrade('Buy')" class="flex-1 bg-green-600 text-white py-2 rounded">Buy</button>
+        <button onclick="placeTrade('Sell')" class="flex-1 bg-red-600 text-white py-2 rounded">Sell</button>
+      </div>
+      <button onclick="closeTradeModal()" class="mt-4 text-center w-full text-xs text-gray-500">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Modal Popup -->
+  <div id="alertModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden">
+    <div class="bg-white p-6 rounded-xl w-full max-w-sm text-center">
+      <div class="font-bold text-lg mb-4" id="alertTitle">Alert</div>
+      <div id="alertMessage" class="text-sm text-gray-700 mb-4">Something happened</div>
+      <button onclick="closeAlert()" class="bg-green-600 text-white px-4 py-2 rounded">OK</button>
+    </div>
+  </div>
 
   <script>
-    const pages = ["home", "wallet", "trades", "user"];
-
-    function loadPage(page) {
-      const tpl = document.getElementById(`template-${page}`);
-      document.getElementById("pageContent").innerHTML = tpl ? tpl.innerHTML : "<div class='p-4'>Coming soon...</div>";
-
-      pages.forEach(p => {
-        const btn = document.getElementById(`tab-${p}`);
-        if (btn) btn.classList.toggle("text-green-400", p === page);
-        if (btn) btn.classList.toggle("text-black", p !== page);
-      });
-
-      const format = val => "KSh" + parseFloat(val).toLocaleString("en-KE", { minimumFractionDigits: 2 });
-      const balance = localStorage.getItem("balance") || 5000;
-      const equity = localStorage.getItem("equity") || 5100;
-      const margin = localStorage.getItem("margin") || 1200;
-      const free = equity - margin;
-      const pl = equity - balance;
-
-      if (page === "wallet") {
-        document.getElementById("walletBalance").textContent = format(balance);
-        document.getElementById("walletPL").textContent = format(pl);
-        document.getElementById("remainingMargin").textContent = format(free);
-        document.getElementById("marginUsed").textContent = format(margin);
-      }
-
-      if (page === "home") {
-        document.getElementById("homeBalance").textContent = format(balance);
-        document.getElementById("homeEquity").textContent = format(equity);
-        document.getElementById("homeMargin").textContent = "Margin: " + format(margin);
-        document.getElementById("homeFree").textContent = "Free Funds: " + format(free);
-        initMarkets();
-      }
+    function showAlert(title, message) {
+      document.getElementById('alertTitle').textContent = title;
+      document.getElementById('alertMessage').textContent = message;
+      document.getElementById('alertModal').classList.remove('hidden');
     }
-
-    function initMarkets() {
-      const symbols = {
-        "EURUSD": "OANDA:EUR_USD",
-        "GBPUSD": "OANDA:GBP_USD",
-        "USDJPY": "OANDA:USD_JPY",
-        "USDCHF": "OANDA:USD_CHF",
-        "USDCAD": "OANDA:USD_CAD",
-        "AUDUSD": "OANDA:AUD_USD",
-        "NZDUSD": "OANDA:NZD_USD",
-        "EURJPY": "OANDA:EUR_JPY",
-        "GBPJPY": "OANDA:GBP_JPY",
-        "XAUUSD": "OANDA:XAU_USD"
-      };
-      const socket = new WebSocket("wss://ws.finnhub.io?token=d17ug69r01qteuvq4ga0d17ug69r01qteuvq4gag");
-      const prices = {};
-
-      socket.addEventListener("open", () => {
-        for (let key in symbols) {
-          socket.send(JSON.stringify({ type: "subscribe", symbol: symbols[key] }));
-          const container = document.getElementById("markets");
-          if (container) {
-            const card = document.createElement("div");
-            card.className = "bg-white rounded-xl shadow p-4 mb-4";
-            card.innerHTML = `
-              <div class="flex justify-between font-semibold mb-2">
-                <span>${key}</span>
-                <span id="change-${key}">Loading...</span>
-              </div>
-              <div class="flex justify-between">
-                <div class="text-red-600" id="sell-${key}">Loading...</div>
-                <div class="text-green-600" id="buy-${key}">Loading...</div>
-              </div>
-            `;
-            container.appendChild(card);
-          }
-        }
-      });
-
-      socket.addEventListener("message", event => {
-        const data = JSON.parse(event.data);
-        if (data.type === "trade") {
-          data.data.forEach(trade => {
-            const full = trade.s.replace("OANDA:", "");
-            const id = full.replace("_", "");
-            const price = parseFloat(trade.p).toFixed(5);
-
-            if (!prices[id]) prices[id] = { last: price };
-            const sellPrice = (price - 0.0002).toFixed(5);
-            const change = price - prices[id].last;
-            const percent = ((change / prices[id].last) * 100).toFixed(2);
-            prices[id].last = price;
-
-            const update = (id, val, cls = "") => {
-              const el = document.getElementById(id);
-              if (el && el.textContent !== val) {
-                el.textContent = val;
-                if (cls) el.className = `font-bold ${cls}`;
-              }
-            };
-            update(`sell-${id}`, `${sellPrice} Sell`);
-            update(`buy-${id}`, `Buy ${price}`);
-            update(`change-${id}`, `${change >= 0 ? "↑" : "↓"} ${Math.abs(percent)}%`, change >= 0 ? "text-green-600" : "text-red-600");
-          });
-        }
-      });
+    function closeAlert() {
+      document.getElementById('alertModal').classList.add('hidden');
     }
+    function openTradeModal(pair) {
+      document.getElementById('modalPair').textContent = pair;
+      document.getElementById('tradeModal').classList.remove('hidden');
+      document.getElementById('modalLivePrice').textContent = prices[pair]?.last || '0.00000';
+    }
+    function closeTradeModal() {
+      document.getElementById('tradeModal').classList.add('hidden');
+    }
+    function placeTrade(type) {
+      const lotSize = parseFloat(document.getElementById('lotSizeInput').value);
+      const stopLoss = parseFloat(document.getElementById('stopLossInput').value);
+      const takeProfit = parseFloat(document.getElementById('takeProfitInput').value);
+      const pair = document.getElementById('modalPair').textContent;
+      const price = parseFloat(prices[pair]?.last || 0);
+      const balance = parseFloat(localStorage.getItem("balance") || 5000);
+      const margin = parseFloat(localStorage.getItem("margin") || 1200);
+      const required = lotSize * 100;
+      const equity = balance + 100;
 
-    window.addEventListener("DOMContentLoaded", () => {
-      loadPage("home");
-    });
+      if (!lotSize || lotSize < 0.01 || lotSize > 50) return showAlert("Invalid Lot", "Lot size must be between 0.01 and 50.");
+      if (required > equity - margin) return showAlert("Insufficient Margin", "You don't have enough margin to place this trade.");
+
+      const trades = JSON.parse(localStorage.getItem("trades") || "[]");
+      trades.push({ pair, type, lotSize, stopLoss, takeProfit, price, time: new Date().toLocaleString() });
+      localStorage.setItem("trades", JSON.stringify(trades));
+      localStorage.setItem("margin", margin + required);
+      showAlert("Trade Placed", `You placed a ${type} trade on ${pair}.`);
+      closeTradeModal();
+    }
   </script>
 </body>
 </html>
