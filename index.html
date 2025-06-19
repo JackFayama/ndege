@@ -96,10 +96,10 @@
     </div>
   </div>
 
-  <!-- Main Script -->
   <script>
     const pages = ["home", "wallet", "trades", "user"];
     let tradeAction = null, tradeSymbol = null;
+    const tradePrices = {};
 
     function loadPage(page) {
       const tpl = document.getElementById(`template-${page}`);
@@ -134,9 +134,14 @@
       }
 
       if (page === "trades") {
-        const list = JSON.parse(localStorage.getItem("trades") || "[]");
+        const list = JSON.parse(localStorage.getItem("trades") || "[]").filter(t => t.active);
         const container = document.getElementById("tradesList");
-        container.innerHTML = list.map(t => `<div class='bg-white p-3 rounded-xl shadow flex justify-between'><span>${t.type} ${t.symbol}</span><span>${format(t.amount)}</span></div>`).join("");
+        container.innerHTML = list.map(t =>
+          `<div class='bg-white p-3 rounded-xl shadow flex justify-between'>
+             <span>${t.type} ${t.symbol}</span>
+             <span>KSh${parseFloat(t.amount).toFixed(2)}</span>
+           </div>`
+        ).join("");
       }
     }
 
@@ -181,10 +186,41 @@
     function confirmTrade() {
       const amount = parseFloat(document.getElementById("tradeAmount").value || 0);
       const trades = JSON.parse(localStorage.getItem("trades") || "[]");
-      trades.push({ symbol: tradeSymbol, type: tradeAction, amount });
+      const price = tradePrices[tradeSymbol] || 0;
+      trades.push({ symbol: tradeSymbol, type: tradeAction, amount, entryPrice: price, active: true });
       localStorage.setItem("trades", JSON.stringify(trades));
       closeTradeModal();
       loadPage("trades");
+    }
+
+    function updateTradesLive(currentPrices) {
+      const trades = JSON.parse(localStorage.getItem("trades") || "[]");
+      let equity = parseFloat(localStorage.getItem("balance") || 5000);
+      let marginUsed = 0;
+
+      for (let t of trades) {
+        if (!t.active) continue;
+        const current = currentPrices[t.symbol];
+        if (!current) continue;
+
+        let diff = (current - t.entryPrice);
+        let profitLoss = (t.type === "Sell" ? -diff : diff) * t.amount * 10;
+
+        let value = t.amount + profitLoss;
+        if (value <= 0) {
+          t.active = false;
+          continue;
+        }
+
+        marginUsed += t.amount;
+        equity += profitLoss;
+      }
+
+      localStorage.setItem("trades", JSON.stringify(trades));
+      localStorage.setItem("margin", marginUsed);
+      localStorage.setItem("equity", equity);
+      loadPage("home");
+      loadPage("wallet");
     }
 
     function initMarkets() {
@@ -201,26 +237,10 @@
         "XAUUSD": "OANDA:XAU_USD"
       };
       const socket = new WebSocket("wss://ws.finnhub.io?token=d17ug69r01qteuvq4ga0d17ug69r01qteuvq4gag");
-      const prices = {};
 
       socket.addEventListener("open", () => {
         for (let key in symbols) {
           socket.send(JSON.stringify({ type: "subscribe", symbol: symbols[key] }));
-          const container = document.getElementById("markets");
-          if (container) {
-            const card = document.createElement("div");
-            card.className = "bg-white rounded-xl shadow p-4 mb-4";
-            card.innerHTML = `
-              <div class="flex justify-between font-semibold mb-2">
-                <span>${key}</span>
-                <span id="change-${key}">Loading...</span>
-              </div>
-              <div class="flex justify-between">
-                <div class="text-red-600 cursor-pointer" id="sell-${key}" onclick="openTradeModal('${key}', 'Sell')">Loading...</div>
-                <div class="text-green-600 cursor-pointer" id="buy-${key}" onclick="openTradeModal('${key}', 'Buy')">Loading...</div>
-              </div>`;
-            container.appendChild(card);
-          }
         }
       });
 
@@ -231,26 +251,32 @@
             const full = trade.s.replace("OANDA:", "");
             const id = full.replace("_", "");
             const price = parseFloat(trade.p).toFixed(5);
+            tradePrices[id] = parseFloat(price);
 
-            if (!prices[id]) prices[id] = { last: price };
-            const sellPrice = (price - 0.0002).toFixed(5);
-            const change = price - prices[id].last;
-            const percent = ((change / prices[id].last) * 100).toFixed(2);
-            prices[id].last = price;
+            document.getElementById(`sell-${id}`)?.textContent = `${(price - 0.0002).toFixed(5)} Sell`;
+            document.getElementById(`buy-${id}`)?.textContent = `Buy ${price}`;
+            document.getElementById(`change-${id}`)?.textContent = price;
 
-            const update = (id, val, cls = "") => {
-              const el = document.getElementById(id);
-              if (el && el.textContent !== val) {
-                el.textContent = val;
-                if (cls) el.className = `font-bold ${cls}`;
-              }
-            };
-            update(`sell-${id}`, `${sellPrice} Sell`);
-            update(`buy-${id}`, `Buy ${price}`);
-            update(`change-${id}`, `${change >= 0 ? "↑" : "↓"} ${Math.abs(percent)}%`, change >= 0 ? "text-green-600" : "text-red-600");
+            updateTradesLive(tradePrices);
           });
         }
       });
+
+      const container = document.getElementById("markets");
+      for (let key in symbols) {
+        const card = document.createElement("div");
+        card.className = "bg-white rounded-xl shadow p-4 mb-4";
+        card.innerHTML = `
+          <div class="flex justify-between font-semibold mb-2">
+            <span>${key}</span>
+            <span id="change-${key}">Loading...</span>
+          </div>
+          <div class="flex justify-between">
+            <div class="text-red-600 cursor-pointer" id="sell-${key}" onclick="openTradeModal('${key}', 'Sell')">Loading...</div>
+            <div class="text-green-600 cursor-pointer" id="buy-${key}" onclick="openTradeModal('${key}', 'Buy')">Loading...</div>
+          </div>`;
+        container.appendChild(card);
+      }
     }
 
     window.addEventListener("DOMContentLoaded", () => loadPage("home"));
