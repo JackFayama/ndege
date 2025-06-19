@@ -5,19 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NovaFX</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-    }
-  </script>
 </head>
 <body class="bg-gray-100 text-sm text-gray-900">
 
   <!-- Top Fixed Header -->
   <div class="fixed top-0 left-0 right-0 z-50 bg-gray-100">
-    <div class="p-4 flex justify-between items-center">
+    <div class="p-4">
       <div class="text-2xl font-bold text-black">NovaFX</div>
-      <button onclick="toggleDark()" class="text-xs text-gray-600">Toggle Dark</button>
     </div>
   </div>
 
@@ -26,19 +20,19 @@
 
   <!-- Bottom Navigation -->
   <div class="fixed bottom-0 left-0 right-0 z-50 bg-gray-100 flex justify-around py-3 rounded-t-2xl border-t">
-    <button data-page="home" id="tab-home" class="tab-btn flex flex-col items-center text-green-400">
+    <button onclick="loadPage('home')" id="tab-home" class="tab-btn flex flex-col items-center text-green-400">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       <span>Home</span>
     </button>
-    <button data-page="trades" id="tab-trades" class="tab-btn flex flex-col items-center text-black">
+    <button onclick="loadPage('trades')" id="tab-trades" class="tab-btn flex flex-col items-center text-black">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
       <span>Trades</span>
     </button>
-    <button data-page="wallet" id="tab-wallet" class="tab-btn flex flex-col items-center text-black">
+    <button onclick="loadPage('wallet')" id="tab-wallet" class="tab-btn flex flex-col items-center text-black">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h0M2 9.5h20"/></svg>
       <span>Wallet</span>
     </button>
-    <button data-page="user" id="tab-user" class="tab-btn flex flex-col items-center text-black">
+    <button onclick="loadPage('user')" id="tab-user" class="tab-btn flex flex-col items-center text-black">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/><circle cx="12" cy="10" r="3"/><circle cx="12" cy="12" r="10"/></svg>
       <span>User</span>
     </button>
@@ -102,13 +96,10 @@
     </div>
   </div>
 
- <script>
+  <!-- Main Script -->
+  <script>
     const pages = ["home", "wallet", "trades", "user"];
     let tradeAction = null, tradeSymbol = null;
-
-    function toggleDark() {
-      document.documentElement.classList.toggle("dark");
-    }
 
     function loadPage(page) {
       const tpl = document.getElementById(`template-${page}`);
@@ -145,11 +136,7 @@
       if (page === "trades") {
         const list = JSON.parse(localStorage.getItem("trades") || "[]");
         const container = document.getElementById("tradesList");
-        container.innerHTML = list.map(t => `
-          <div class='bg-white p-3 rounded-xl shadow flex justify-between'>
-            <span class="${t.type === 'Buy' ? 'text-green-600' : 'text-red-600'}">${t.type} ${t.symbol}</span>
-            <span>KSh${parseFloat(t.amount).toLocaleString("en-KE", { minimumFractionDigits: 2 })}</span>
-          </div>`).join("");
+        container.innerHTML = list.map(t => `<div class='bg-white p-3 rounded-xl shadow flex justify-between'><span>${t.type} ${t.symbol}</span><span>${format(t.amount)}</span></div>`).join("");
       }
     }
 
@@ -159,8 +146,6 @@
       document.getElementById("walletConfirmBtn").onclick = () => {
         let amt = parseFloat(document.getElementById("walletAmount").value || 0);
         let bal = parseFloat(localStorage.getItem("balance") || 5000);
-        if (isNaN(amt) || amt <= 0) return alert("Enter valid amount");
-        if (type === "withdraw" && amt > bal) return alert("Insufficient balance.");
         if (type === "deposit") bal += amt;
         if (type === "withdraw") bal -= amt;
         localStorage.setItem("balance", bal);
@@ -195,28 +180,80 @@
 
     function confirmTrade() {
       const amount = parseFloat(document.getElementById("tradeAmount").value || 0);
-      if (isNaN(amount) || amount <= 0) return alert("Please enter a valid trade amount.");
       const trades = JSON.parse(localStorage.getItem("trades") || "[]");
-      trades.push({ symbol: tradeSymbol, type: tradeAction, amount, date: new Date().toISOString() });
+      trades.push({ symbol: tradeSymbol, type: tradeAction, amount });
       localStorage.setItem("trades", JSON.stringify(trades));
       closeTradeModal();
       loadPage("trades");
     }
 
     function initMarkets() {
-      // unchanged
+      const symbols = {
+        "EURUSD": "OANDA:EUR_USD",
+        "GBPUSD": "OANDA:GBP_USD",
+        "USDJPY": "OANDA:USD_JPY",
+        "USDCHF": "OANDA:USD_CHF",
+        "USDCAD": "OANDA:USD_CAD",
+        "AUDUSD": "OANDA:AUD_USD",
+        "NZDUSD": "OANDA:NZD_USD",
+        "EURJPY": "OANDA:EUR_JPY",
+        "GBPJPY": "OANDA:GBP_JPY",
+        "XAUUSD": "OANDA:XAU_USD"
+      };
+      const socket = new WebSocket("wss://ws.finnhub.io?token=d17ug69r01qteuvq4ga0d17ug69r01qteuvq4gag");
+      const prices = {};
+
+      socket.addEventListener("open", () => {
+        for (let key in symbols) {
+          socket.send(JSON.stringify({ type: "subscribe", symbol: symbols[key] }));
+          const container = document.getElementById("markets");
+          if (container) {
+            const card = document.createElement("div");
+            card.className = "bg-white rounded-xl shadow p-4 mb-4";
+            card.innerHTML = `
+              <div class="flex justify-between font-semibold mb-2">
+                <span>${key}</span>
+                <span id="change-${key}">Loading...</span>
+              </div>
+              <div class="flex justify-between">
+                <div class="text-red-600 cursor-pointer" id="sell-${key}" onclick="openTradeModal('${key}', 'Sell')">Loading...</div>
+                <div class="text-green-600 cursor-pointer" id="buy-${key}" onclick="openTradeModal('${key}', 'Buy')">Loading...</div>
+              </div>`;
+            container.appendChild(card);
+          }
+        }
+      });
+
+      socket.addEventListener("message", event => {
+        const data = JSON.parse(event.data);
+        if (data.type === "trade") {
+          data.data.forEach(trade => {
+            const full = trade.s.replace("OANDA:", "");
+            const id = full.replace("_", "");
+            const price = parseFloat(trade.p).toFixed(5);
+
+            if (!prices[id]) prices[id] = { last: price };
+            const sellPrice = (price - 0.0002).toFixed(5);
+            const change = price - prices[id].last;
+            const percent = ((change / prices[id].last) * 100).toFixed(2);
+            prices[id].last = price;
+
+            const update = (id, val, cls = "") => {
+              const el = document.getElementById(id);
+              if (el && el.textContent !== val) {
+                el.textContent = val;
+                if (cls) el.className = `font-bold ${cls}`;
+              }
+            };
+            update(`sell-${id}`, `${sellPrice} Sell`);
+            update(`buy-${id}`, `Buy ${price}`);
+            update(`change-${id}`, `${change >= 0 ? "↑" : "↓"} ${Math.abs(percent)}%`, change >= 0 ? "text-green-600" : "text-red-600");
+          });
+        }
+      });
     }
 
-    window.addEventListener("DOMContentLoaded", () => {
-      document.querySelectorAll(".tab-btn").forEach(btn =>
-        btn.addEventListener("click", () => loadPage(btn.dataset.page))
-      );
-      loadPage("home");
-    });
-
-    window.addEventListener("beforeunload", () => {
-      if (socket && socket.readyState === WebSocket.OPEN) socket.close();
-    });
+    window.addEventListener("DOMContentLoaded", () => loadPage("home"));
   </script>
 </body>
 </html>
