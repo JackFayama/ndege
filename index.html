@@ -38,15 +38,67 @@
     </button>
   </div>
 
-  <!-- Templates and Modals remain unchanged -->
-  <!-- The script section below is fully enhanced and kept inline -->
+  <!-- Templates -->
+  <script type="text/template" id="template-home">
+    <div class="bg-green-600 text-white mx-4 rounded-2xl p-4">
+      <div class="opacity-80 text-xs">Total</div>
+      <div class="text-3xl font-bold" id="homeBalance">KSh0.00</div>
+      <div class="text-xs" id="homeMargin">Margin: KSh0.00</div>
+      <div class="text-xs" id="homeEquity">Equity: KSh0.00</div>
+      <div class="text-xs" id="homeFree">Free Funds: KSh0.00</div>
+    </div>
+    <div id="markets" class="p-4"></div>
+  </script>
+
+  <script type="text/template" id="template-wallet">
+    <div class="mx-4 p-4 bg-white rounded-2xl shadow space-y-2">
+      <div><span class="text-gray-500">Balance:</span> <span id="walletBalance">KSh0.00</span></div>
+      <div><span class="text-gray-500">P&L:</span> <span id="walletPL">KSh0.00</span></div>
+      <div><span class="text-gray-500">Remaining Margin:</span> <span id="remainingMargin">KSh0.00</span></div>
+      <div><span class="text-gray-500">Margin Used:</span> <span id="marginUsed">KSh0.00</span></div>
+      <div class="flex gap-2 mt-4">
+        <button onclick="openWalletModal('deposit')" class="flex-1 bg-green-500 text-white rounded-xl py-2">Deposit</button>
+        <button onclick="openWalletModal('withdraw')" class="flex-1 bg-red-500 text-white rounded-xl py-2">Withdraw</button>
+      </div>
+    </div>
+  </script>
+
+  <script type="text/template" id="template-trades">
+    <div id="tradesList" class="p-4 space-y-2"></div>
+  </script>
+
+  <script type="text/template" id="template-user">
+    <div class="p-4 text-center text-gray-500">User profile will go here.</div>
+  </script>
+
+  <!-- Wallet Modal -->
+  <div id="walletModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-2xl w-[90%] max-w-sm space-y-4">
+      <h2 class="text-lg font-semibold" id="walletModalTitle">Action</h2>
+      <input type="number" id="walletAmount" class="w-full border p-2 rounded-md" placeholder="Amount (KSh)" />
+      <div class="flex justify-end gap-2">
+        <button onclick="closeWalletModal()" class="px-4 py-2">Cancel</button>
+        <button id="walletConfirmBtn" class="bg-green-600 text-white px-4 py-2 rounded">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trade Modal -->
+  <div id="tradeModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-2xl w-[90%] max-w-sm space-y-4">
+      <h2 class="text-lg font-semibold" id="tradeModalTitle">Trade</h2>
+      <p id="tradeSymbol" class="font-semibold text-center"></p>
+      <input type="number" id="tradeAmount" class="w-full border p-2 rounded-md" placeholder="Amount (KSh)" />
+      <div class="flex justify-end gap-2">
+        <button onclick="closeTradeModal()" class="px-4 py-2">Cancel</button>
+        <button onclick="confirmTrade()" class="bg-blue-600 text-white px-4 py-2 rounded">Submit</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const pages = ["home", "wallet", "trades", "user"];
     let tradeAction = null, tradeSymbol = null;
-
-    function format(val) {
-      return "KSh" + parseFloat(val).toLocaleString("en-KE", { minimumFractionDigits: 2 });
-    }
 
     function loadPage(page) {
       const tpl = document.getElementById(`template-${page}`);
@@ -58,6 +110,7 @@
         if (btn) btn.classList.toggle("text-black", p !== page);
       });
 
+      const format = val => "KSh" + parseFloat(val).toLocaleString("en-KE", { minimumFractionDigits: 2 });
       const balance = parseFloat(localStorage.getItem("balance") || 5000);
       const equity = parseFloat(localStorage.getItem("equity") || 5100);
       const margin = parseFloat(localStorage.getItem("margin") || 1200);
@@ -82,7 +135,7 @@
       if (page === "trades") {
         const list = JSON.parse(localStorage.getItem("trades") || "[]");
         const container = document.getElementById("tradesList");
-        container.innerHTML = list.map(t => `<div class='bg-white p-3 rounded-xl shadow flex justify-between'><span>${t.type} ${t.symbol}</span><span id="trade-${t.symbol}-${t.type}-${t.amount}">${format(t.amount)}</span></div>`).join("");
+        container.innerHTML = list.map(t => `<div class='bg-white p-3 rounded-xl shadow flex justify-between'><span>${t.type} ${t.symbol}</span><span>${format(t.amount)}</span></div>`).join("");
       }
     }
 
@@ -92,12 +145,10 @@
       document.getElementById("walletConfirmBtn").onclick = () => {
         let amt = parseFloat(document.getElementById("walletAmount").value || 0);
         let bal = parseFloat(localStorage.getItem("balance") || 5000);
-        if (amt <= 0) return alert("Enter valid amount");
-        if (type === "withdraw" && amt > bal) return alert("Insufficient balance");
-        bal = type === "deposit" ? bal + amt : bal - amt;
-        const newEquity = bal + 100;
+        if (type === "deposit") bal += amt;
+        if (type === "withdraw") bal -= amt;
         localStorage.setItem("balance", bal);
-        localStorage.setItem("equity", newEquity);
+        localStorage.setItem("equity", bal + 100);
         closeWalletModal();
         loadPage("wallet");
         loadPage("home");
@@ -128,20 +179,11 @@
 
     function confirmTrade() {
       const amount = parseFloat(document.getElementById("tradeAmount").value || 0);
-      let balance = parseFloat(localStorage.getItem("balance") || 5000);
-      let margin = parseFloat(localStorage.getItem("margin") || 1200);
-      if (amount <= 0 || amount > balance) return alert("Invalid trade amount");
       const trades = JSON.parse(localStorage.getItem("trades") || "[]");
       trades.push({ symbol: tradeSymbol, type: tradeAction, amount });
       localStorage.setItem("trades", JSON.stringify(trades));
-      balance -= amount;
-      margin += amount;
-      localStorage.setItem("balance", balance);
-      localStorage.setItem("margin", margin);
-      localStorage.setItem("equity", balance + 100);
       closeTradeModal();
       loadPage("trades");
-      loadPage("home");
     }
 
     function initMarkets() {
@@ -212,6 +254,5 @@
 
     window.addEventListener("DOMContentLoaded", () => loadPage("home"));
   </script>
-
 </body>
 </html>
